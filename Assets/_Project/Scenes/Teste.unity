@@ -148,6 +148,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6292fdf3292d93941bd775bf8e760e2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SessionManager
+  maxPlayers: 3
+  isPrivate: 0
+  sessionName: Balds SEssions
+  password: 
+  joinCode: 
 --- !u!4 &483516473
 Transform:
   m_ObjectHideFlags: 0
@@ -369,7 +374,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1615369133}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 34893ef659027b249bd886fc2957b6c4, type: 3}
   m_Name: 
