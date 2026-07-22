@@ -7,11 +7,7 @@ using Unity.Services.Multiplayer;
 
 public class SessionManager : MonoBehaviour
 {
-    [Header("Host Session")]
-	[SerializeField] private int maxPlayers;
-	[SerializeField] private bool isPrivate;
-	[SerializeField] private string sessionName;
-	[SerializeField] private string password;
+    [SerializeField] HostUI privateHostUI;
 
     [Header("Client Session")]
     [SerializeField] private string joinCode;
@@ -20,8 +16,9 @@ public class SessionManager : MonoBehaviour
 	private bool isCreatingSession;
 
 	private IHostSession currentSession;
-	private void Start()
+	private void Awake()
 	{
+        privateHostUI.Initialize(CreateSessionAsHost);
 		InitializeAsync();
 	}
 
@@ -39,26 +36,13 @@ public class SessionManager : MonoBehaviour
 			Debug.LogException(e);
 		}
 	}
-
-	private void OnGUI()
-	{
-		if (GUILayout.Button("Create session"))
-		{ 
-			CreateSessionAsHost();
-		}
-        
-        if (GUILayout.Button("Join session"))
-        { 
-            JoinSessionAsClient();
-        }
-	}
-
+    
     private async Task JoinSessionAsClient()
     {
         ISession session = await MultiplayerService.Instance.JoinSessionByCodeAsync(joinCode);
     }
     
-	private async Task CreateSessionAsHost()
+	private async Task CreateSessionAsHost(SessionOptions options)
 	{
 		if (CanCreateSession() == false)
 		{
@@ -69,14 +53,6 @@ public class SessionManager : MonoBehaviour
 
 		try
 		{
-			SessionOptions options = new SessionOptions
-				{
-					MaxPlayers = maxPlayers,
-					IsPrivate = isPrivate,
-					Name = sessionName,
-					Password = string.IsNullOrWhiteSpace(password) ? null : password 
-                }.WithRelayNetwork();
-
 			currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
 		}
         
