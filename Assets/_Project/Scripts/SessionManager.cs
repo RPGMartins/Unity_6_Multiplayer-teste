@@ -7,10 +7,8 @@ using Unity.Services.Multiplayer;
 
 public class SessionManager : MonoBehaviour
 {
-    [SerializeField] HostUI privateHostUI;
-
-    [Header("Client Session")]
-    [SerializeField] private string joinCode;
+    [SerializeField] HostUI hostUI;
+    [SerializeField] ClientUI clientUI;
     
 	private bool isInitialized = false;
 	private bool isCreatingSession;
@@ -18,7 +16,8 @@ public class SessionManager : MonoBehaviour
 	private IHostSession currentSession;
 	private void Awake()
 	{
-        privateHostUI.Initialize(CreateSessionAsHost);
+        hostUI.Initialize(CreateSessionAsHost);
+        clientUI.Initialize(JoinSessionAsClient);
 		InitializeAsync();
 	}
 
@@ -37,7 +36,7 @@ public class SessionManager : MonoBehaviour
 		}
 	}
     
-    private async Task JoinSessionAsClient()
+    private async Task JoinSessionAsClient(string joinCode)
     {
         ISession session = await MultiplayerService.Instance.JoinSessionByCodeAsync(joinCode);
     }
