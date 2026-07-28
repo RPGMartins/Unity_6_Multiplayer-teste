@@ -9,11 +9,11 @@ public class ClientUI : MonoBehaviour
     [SerializeField] private TMP_InputField joinCodeText;
     [SerializeField] private Button joinButton;
 
-    public void Initialize(Func<string,Task> hostCallback)
+    public void Initialize(Func<string,Task> clientCallback)
     {
         joinButton.onClick.AddListener(() =>
         {
-            hostCallback.Invoke(joinCodeText.text);
+            clientCallback.Invoke(joinCodeText.text);
         });
     }
 }
