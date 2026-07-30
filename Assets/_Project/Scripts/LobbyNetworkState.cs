@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Unity.Collections;
 using Unity.Netcode;
-using Unity.Services.Multiplayer;
-using UnityEngine;
-using Random = UnityEngine.Random;
 
 public class LobbyNetworkState : NetworkBehaviour
 {
+    public event Action OnNetworkSpawnCallback;
     public event Action OnHostLeave;
 
     private NetworkVariable<LobbyData> lobbyState = new NetworkVariable<LobbyData>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     public NetworkList<PlayerData> playersState;
     public NetworkVariable<LobbyData> LobbyState => lobbyState;
     public NetworkList<PlayerData> PlayersState => playersState;
@@ -20,17 +18,19 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        OnNetworkSpawnCallback?.Invoke();
+
+        if (IsHost == true)
+        {
+            ResetVariables();
+        }
     }
 
     public override void OnNetworkDespawn()
     {
-        if (IsServer == true && IsHost == true)
+        if (IsHost == true)
         {
             ResetVariables();
-        }
-        else
-        {
-            OnHostLeave.Invoke();
         }
     }
 
@@ -48,13 +48,18 @@ public class LobbyNetworkState : NetworkBehaviour
 
     private void Awake()
     {
-        sessionManager = FindAnyObjectByType<SessionManager>();
         playersState = new NetworkList<PlayerData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+        sessionManager = FindAnyObjectByType<SessionManager>();
+        sessionManager.OnSessionUpdate += UpdateLobbyData;
+        sessionManager.OnSessionHostUpdated += PlayerHostUpdate;
     }
+
+    #region Lobby
 
     public void CreateLobbyData(int maxPlayers, bool isPrivate, string lobbyName, string lobbyCode)
     {
-        if (IsServer == false)
+        if (IsHost == false)
         {
             return;
         }
@@ -62,51 +67,18 @@ public class LobbyNetworkState : NetworkBehaviour
         UpdateLobbyData(new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode));
     }
 
-    public async void UpdateLobbyData(bool isPrivate, string lobbyName)
-    {
-        if (IsServer == false && IsHost == false)
-        {
-            return;
-        }
-
-        LobbyData newLobby = new LobbyData(lobbyState.Value.MaxPlayers, isPrivate, lobbyName, lobbyState.Value.LobbyCode);
-        await UpdateSessionAsync(sessionManager.CurrentSession, newLobby);
-        UpdateLobbyData(newLobby);
-    }
-
-    private async Task UpdateSessionAsync(ISession session, LobbyData lobbyData)
-    {
-        try
-        {
-            IHostSession hostSession = session.AsHost();
-
-            hostSession.Name = lobbyData.LobbyName.Value;
-            hostSession.IsPrivate = lobbyData.IsPrivate;
-
-            await hostSession.SavePropertiesAsync();
-
-            Debug.Log(
-                $"Sessão atualizada: " +
-                $"{hostSession.Name}, " +
-                $"privada: {hostSession.IsPrivate}"
-            );
-        }
-        catch (SessionException exception)
-        {
-            Debug.LogError(
-                $"Falha ao atualizar sessão: {exception.Message}"
-            );
-        }
-    }
-
     private void UpdateLobbyData(LobbyData lobbyData)
     {
         lobbyState.Value = lobbyData;
     }
 
+    #endregion
+
+    #region Player Join/Leave
+
     public void PlayerJoined(PlayerData playerData)
     {
-        if (IsServer == false)
+        if (IsHost == false)
         {
             return;
         }
@@ -116,23 +88,30 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public void PlayerLeft(string playerID)
     {
+        if (IsHost == false)
+        {
+            sessionManager.LeaveSessionAsClient();
+
+            return;
+        }
+
         int playerIndex = GetPlayerDataIndex(playerID);
         playersState.RemoveAt(playerIndex);
     }
 
-    public void CurrentPlayerLeave()
+    public void PlayerHostUpdate(string playerID)
     {
-        if (IsHost == true && IsServer == true)
+        if (IsHost == false)
         {
-            //sessionManager.LeaveSessionAsClient();
+            return;
         }
-
-        sessionManager.LeaveSessionAsClient(); //TODO colocar migração de host
     }
+
+    #endregion
 
     public void TogglePlayerReady(FixedString64Bytes id)
     {
-        if (IsServer == false)
+        if (IsHost == false)
         {
             TogglePlayerReadyRpc(id);
 
@@ -147,12 +126,6 @@ public class LobbyNetworkState : NetworkBehaviour
             player.ToggleReady();
             playersState[playerIndex] = player;
         }
-    }
-
-    [Rpc(SendTo.Server)]
-    private void TogglePlayerReadyRpc(FixedString64Bytes id)
-    {
-        TogglePlayerReady(id);
     }
 
     private int GetPlayerDataIndex(FixedString64Bytes id)
@@ -170,7 +143,13 @@ public class LobbyNetworkState : NetworkBehaviour
 
     private void ResetVariables()
     {
-        lobbyState = new NetworkVariable<LobbyData>();
+        lobbyState.Value = new LobbyData();
         playersState.Clear();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void TogglePlayerReadyRpc(FixedString64Bytes id)
+    {
+        TogglePlayerReady(id);
     }
 }

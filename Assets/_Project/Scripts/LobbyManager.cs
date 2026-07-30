@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Multiplayer;
@@ -14,20 +13,25 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private SessionManager sessionManager;
     [SerializeField] private LobbyNetworkState lobbyNetworkState;
 
-    private FixedString64Bytes currentPlayerID;
+    private IAuthenticationService currentPlayer;
+
     public SessionManager SessionManager => sessionManager;
+
+    private void Awake()
+    {
+        sessionManager.OnAuthenticatedSucceed += SessionManagerOnOnAuthenticatedSucceed;
+        sessionManager.OnSessionConnected += SessionManagerOnSessionConnected;
+    }
 
     public void Start()
     {
-        sessionManager.OnSessionCreated += SessionManagerOnSessionCreated;
         lobbyNetworkState.LobbyState.OnValueChanged += OnLobbyStateValueChanged;
         lobbyNetworkState.playersState.OnListChanged += PlayersStateOnOnListChanged;
-        lobbyNetworkState.OnHostLeave += LobbyNetworkStateOnOnHostLeave;
     }
 
-    private void LobbyNetworkStateOnOnHostLeave()
+    private void SessionManagerOnOnAuthenticatedSucceed()
     {
-        sessionManager.LeaveSession();
+        currentPlayer = AuthenticationService.Instance;
     }
 
     private void PlayersStateOnOnListChanged(NetworkListEvent<PlayerData> changeEvent)
@@ -40,15 +44,14 @@ public class LobbyManager : MonoBehaviour
         onLobbyUpdated?.Invoke(newValue);
     }
 
-    private void SessionManagerOnSessionCreated(ISession session)
+    private void SessionManagerOnSessionConnected(ISession session)
     {
-        currentPlayerID = AuthenticationService.Instance.PlayerId;
-        sessionManager.CurrentSession.PlayerJoined += CurrentSessionOnPlayerJoined;
-        sessionManager.CurrentSession.PlayerHasLeft += (id) => lobbyNetworkState.PlayerLeft(id);
+        session.PlayerJoined += CurrentSessionOnPlayerJoined;
+        session.PlayerHasLeft += (id) => lobbyNetworkState.PlayerLeft(id);
 
         foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
         {
-            PlayerData playerData = new PlayerData(readOnlyPlayer.Id, "");
+            PlayerData playerData = new PlayerData(readOnlyPlayer.Id, currentPlayer.PlayerName);
 
             lobbyNetworkState.PlayerJoined(playerData);
         }
@@ -75,22 +78,20 @@ public class LobbyManager : MonoBehaviour
 
     private void CurrentSessionOnPlayerJoined(string id)
     {
-        lobbyNetworkState.PlayerJoined(new PlayerData(id, ""));
-    }
+        foreach (IReadOnlyPlayer readOnlyPlayer in sessionManager.CurrentSession.Players)
+        {
+            if (readOnlyPlayer.Id == id)
+            {
+                lobbyNetworkState.PlayerJoined(new PlayerData(id, "GuestPlayer"));
 
-    public void ExitLobby(bool migrateHost)
-    {
-        lobbyNetworkState.CurrentPlayerLeave();
+                break;
+            }
+        }
     }
 
     public void ToggleCurrentPlayerReady()
     {
-        lobbyNetworkState.TogglePlayerReady(currentPlayerID);
-    }
-
-    public void CallUpdateLobby(bool isPrivate, string lobbyName)
-    {
-        lobbyNetworkState.UpdateLobbyData(isPrivate, lobbyName);
+        lobbyNetworkState.TogglePlayerReady(currentPlayer.PlayerId);
     }
 
     #region Getters

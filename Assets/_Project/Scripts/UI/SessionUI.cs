@@ -15,7 +15,7 @@ public class SessionUI : MonoBehaviour
     {
         sessionManager = FindAnyObjectByType<SessionManager>();
 
-        sessionManager.OnSessionCreated += CreateSession;
+        sessionManager.OnSessionConnected += CreateSession;
         sessionManager.OnSessionEnded += LeaveSession;
     }
 
