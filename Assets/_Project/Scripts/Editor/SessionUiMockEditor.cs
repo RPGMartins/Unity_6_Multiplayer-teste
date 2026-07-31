@@ -33,7 +33,7 @@ public class SessionUiMockEditor : Editor
         sessionToUse = session;
     }
 
-    private void SessionManagerOnOnSessionLostConnection()
+    private void SessionManagerOnOnSessionLostConnection(ISession session)
     {
         sessionToUse = null;
     }
@@ -59,24 +59,24 @@ public class SessionUiMockEditor : Editor
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.BeginVertical();
-            EditorGUILayout.LabelField("Create Lobby Options");
+            EditorGUILayout.LabelField("Create Session Options");
             EditorGUILayout.Space(10);
             playersQuantity = EditorGUILayout.IntField("playersQuantity", playersQuantity);
             lobbyName = EditorGUILayout.TextField("LobbyName", lobbyName);
             passWord = EditorGUILayout.TextField("passWord", passWord);
             isPrivate = EditorGUILayout.Toggle("isPrivate", isPrivate);
 
-            if (GUILayout.Button("Create Lobby"))
+            if (GUILayout.Button("Create Session"))
             {
                 sessionManager.CreateSessionAsHost(CreateSessionOptions());
             }
 
-            if (GUILayout.Button("Create Random Lobby"))
+            if (GUILayout.Button("Create Random Session"))
             {
                 sessionManager.CreateSessionAsHost(CreateSessionOptions(GetRandomName()));
             }
 
-            if (GUILayout.Button("Update Lobby"))
+            if (GUILayout.Button("Update Session"))
             {
                 sessionManager.CreateSessionAsHost(CreateSessionOptions(GetRandomName()));
             }
@@ -88,7 +88,7 @@ public class SessionUiMockEditor : Editor
             joinCode = EditorGUILayout.TextField("joinCode", joinCode);
             EditorGUILayout.EndVertical();
 
-            if (GUILayout.Button("Join Lobby"))
+            if (GUILayout.Button("Join Session"))
             {
                 sessionManager.JoinSessionByCode(joinCode);
             }
@@ -105,7 +105,7 @@ public class SessionUiMockEditor : Editor
         }
         else
         {
-            if (GUILayout.Button("Exit Lobby"))
+            if (GUILayout.Button("Exit Session"))
             {
                 sessionManager.LeaveSession();
             }

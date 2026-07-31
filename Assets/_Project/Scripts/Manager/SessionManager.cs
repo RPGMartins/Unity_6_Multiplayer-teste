@@ -1,48 +1,40 @@
 using UnityEngine;
-using Unity.Services.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Netcode;
-using Unity.Services.Authentication;
 using Unity.Services.Multiplayer;
 using Random = UnityEngine.Random;
 
 public class SessionManager : MonoBehaviour
 {
-    public event Action OnAuthenticatedSucceed;
-    public event Action OnAuthenticatedFailed;
     public event Action<ISession> OnSessionConnected;
-    public event Action OnSessionEnded;
-    public event Action<string> OnSessionHostUpdated;
+    public event Action<ISession> OnSessionEnded;
+    public event Action<ISession> OnSessionLostConnection;
     public event Action<LobbyData> OnSessionUpdate;
-    public event Action OnSessionLostConnection;
 
     private bool isCreatingSession;
     private bool isLeavingSession;
 
     private ISession currentSession;
+    private AuthenticationManager authenticationManager;
     public ISession CurrentSession => currentSession;
-
-    private void Awake()
-    {
-        InitializeAsync();
-    }
 
     private void Start()
     {
-        NetworkManager.Singleton.OnConnectionEvent += SingletonOnOnConnectionEvent;
+        authenticationManager = FindAnyObjectByType<AuthenticationManager>(); //TODO USAR SINGLETON
+        NetworkManager.Singleton.OnConnectionEvent += HandleConnection;
     }
 
     private void OnDestroy()
     {
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnConnectionEvent -= SingletonOnOnConnectionEvent;
+            NetworkManager.Singleton.OnConnectionEvent -= HandleConnection;
         }
     }
 
-    private void SingletonOnOnConnectionEvent(NetworkManager networkManager, ConnectionEventData eventData)
+    private void HandleConnection(NetworkManager networkManager, ConnectionEventData eventData)
     {
         switch (eventData.EventType)
         {
@@ -52,24 +44,9 @@ public class SessionManager : MonoBehaviour
                     return;
                 }
 
-                OnSessionLostConnection?.Invoke();
+                OnSessionLostConnection?.Invoke(currentSession);
 
                 break;
-        }
-    }
-
-    private async void InitializeAsync()
-    {
-        try
-        {
-            await UnityServices.InitializeAsync();
-            await AuthenticationService.Instance.SignInAnonymouslyAsync();
-            OnAuthenticatedSucceed?.Invoke();
-        }
-        catch (Exception e)
-        {
-            OnAuthenticatedFailed?.Invoke();
-            Debug.LogException(e);
         }
     }
 
@@ -87,6 +64,7 @@ public class SessionManager : MonoBehaviour
         try
         {
             currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+            OnSessionConnected?.Invoke(currentSession);
         }
         catch (Exception exception)
         {
@@ -95,7 +73,6 @@ public class SessionManager : MonoBehaviour
         finally
         {
             isCreatingSession = false;
-            OnSessionConnected?.Invoke(currentSession);
         }
     }
 
@@ -116,7 +93,7 @@ public class SessionManager : MonoBehaviour
         }
     }
 
-    public async Task JoinSessionByID(string joinID)
+    private async Task JoinSessionByID(string joinID)
     {
         try
         {
@@ -135,7 +112,7 @@ public class SessionManager : MonoBehaviour
         QuerySessionsResults querySessionsResults = await MultiplayerService.Instance.QuerySessionsAsync(querySessionsOptions);
 
         ISessionInfo session = querySessionsResults.Sessions[Random.Range(0, querySessionsResults.Sessions.Count)];
-        JoinSessionByID(session.Id);
+        await JoinSessionByID(session.Id);
     }
 
     public async Task RejoinSession()
@@ -146,7 +123,7 @@ public class SessionManager : MonoBehaviour
             {
                 await currentSession.RefreshAsync();
 
-                if (currentSession.HasPlayer(AuthenticationService.Instance.PlayerId) == true)
+                if (currentSession.HasPlayer(authenticationManager.PlayerID) == true)
                 {
                     await currentSession.ReconnectAsync();
                     NetworkManager.Singleton.StartClient();
@@ -183,32 +160,11 @@ public class SessionManager : MonoBehaviour
 
     public async Task LeaveSession()
     {
-        if (false) // TODO migração de host considerando NGO e relay
-        {
-            foreach (IReadOnlyPlayer readOnlyPlayer in currentSession.Players)
-            {
-                if (currentSession.Host == readOnlyPlayer.Id)
-                {
-                    continue;
-                }
-
-                await ElectPlayerAsHostAsync(readOnlyPlayer.Id);
-                OnSessionHostUpdated?.Invoke(readOnlyPlayer.Id);
-
-                break;
-            }
-        }
-
-        LeaveSessionAsClient();
-    }
-
-    public async Task LeaveSessionAsClient()
-    {
         isLeavingSession = true;
         await currentSession.LeaveAsync();
         isLeavingSession = false;
+        OnSessionEnded?.Invoke(currentSession);
         currentSession = null;
-        OnSessionEnded?.Invoke();
     }
 
     #endregion
@@ -224,7 +180,7 @@ public class SessionManager : MonoBehaviour
 
     #region Update Session
 
-    public async Task UpdateLobbyData(bool isPrivate, string lobbyName)
+    public async Task UpdateSessionData(bool isPrivate, string lobbyName)
     {
         if (currentSession.IsHost == false)
         {
@@ -246,12 +202,6 @@ public class SessionManager : MonoBehaviour
             hostSession.IsPrivate = lobbyData.IsPrivate;
 
             await hostSession.SavePropertiesAsync();
-
-            Debug.Log(
-                $"Sessão atualizada: " +
-                $"{hostSession.Name}, " +
-                $"privada: {hostSession.IsPrivate}"
-            );
         }
         catch (SessionException exception)
         {
@@ -259,18 +209,6 @@ public class SessionManager : MonoBehaviour
                 $"Falha ao atualizar sessão: {exception.Message}"
             );
         }
-    }
-
-    #endregion
-
-    #region HostMigration
-
-    public Task ElectPlayerAsHostAsync(string playerId)
-    {
-        IHostSession hostSession = currentSession.AsHost();
-        hostSession.Host = playerId;
-
-        return hostSession.SavePropertiesAsync();
     }
 
     #endregion

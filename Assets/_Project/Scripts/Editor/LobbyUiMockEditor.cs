@@ -8,7 +8,7 @@ public class LobbyUiMockEditor : Editor
     {
         DrawDefaultInspector();
         SessionManager sessionManager = ((LobbyUiMock)target).SessionManager;
-        LobbyManager lobbyManager = ((LobbyUiMock)target).LobbyManager;
+        LobbyManager lobbyUIManager = ((LobbyUiMock)target).LobbyManager;
 
         if (sessionManager.CurrentSession != null)
         {
@@ -16,7 +16,7 @@ public class LobbyUiMockEditor : Editor
             {
                 if (GUILayout.Button("Randomize Lobby Name"))
                 {
-                    sessionManager.UpdateLobbyData(sessionManager.CurrentSession.IsPrivate, SessionUiMockEditor.GetRandomName());
+                    sessionManager.UpdateSessionData(sessionManager.CurrentSession.IsPrivate, SessionUiMockEditor.GetRandomName());
                 }
 
                 if (GUILayout.Button("Start Match"))
@@ -26,16 +26,16 @@ public class LobbyUiMockEditor : Editor
 
             if (GUILayout.Button("Toggle Ready"))
             {
-                lobbyManager.ToggleCurrentPlayerReady();
+                lobbyUIManager.ToggleCurrentPlayerReady();
             }
 
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Lobby Options");
-            EditorGUILayout.LabelField($"Name: {lobbyManager.GetLobbyName()}");
-            EditorGUILayout.LabelField($"Code: {lobbyManager.GetLobbyCode()}");
-            EditorGUILayout.LabelField($"Host: {lobbyManager.SessionManager.CurrentSession.Host}");
+            EditorGUILayout.LabelField($"Name: {lobbyUIManager.GetLobbyName()}");
+            EditorGUILayout.LabelField($"Code: {lobbyUIManager.GetLobbyCode()}");
+            EditorGUILayout.LabelField($"Host: {sessionManager.CurrentSession.Host}");
 
-            foreach (PlayerData player in lobbyManager.GetLobbyPlayers())
+            foreach (PlayerData player in lobbyUIManager.GetLobbyPlayers())
             {
                 EditorGUILayout.Space(10);
                 EditorGUILayout.LabelField($"PlayerID: {player.AuthenticationId}");

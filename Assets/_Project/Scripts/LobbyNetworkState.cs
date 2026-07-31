@@ -1,49 +1,25 @@
-using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 
 public class LobbyNetworkState : NetworkBehaviour
 {
-    public event Action OnNetworkSpawnCallback;
-    public event Action OnHostLeave;
-
     private NetworkVariable<LobbyData> lobbyState = new NetworkVariable<LobbyData>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-    public NetworkList<PlayerData> playersState;
-    public NetworkVariable<LobbyData> LobbyState => lobbyState;
-    public NetworkList<PlayerData> PlayersState => playersState;
+    private NetworkList<PlayerData> playersState;
 
     private SessionManager sessionManager;
 
+    public NetworkVariable<LobbyData> LobbyState => lobbyState;
+    public NetworkList<PlayerData> PlayersState => playersState;
+
     public override void OnNetworkSpawn()
     {
-        OnNetworkSpawnCallback?.Invoke();
-
-        if (IsHost == true)
-        {
-            ResetVariables();
-        }
+        ResetVariables();
     }
 
     public override void OnNetworkDespawn()
     {
-        if (IsHost == true)
-        {
-            ResetVariables();
-        }
-    }
-
-    public List<PlayerData> GetLobbyPlayers()
-    {
-        List<PlayerData> playersToReturn = new List<PlayerData>();
-
-        foreach (PlayerData player in PlayersState)
-        {
-            playersToReturn.Add(player);
-        }
-
-        return playersToReturn;
+        ResetVariables();
     }
 
     private void Awake()
@@ -52,7 +28,6 @@ public class LobbyNetworkState : NetworkBehaviour
 
         sessionManager = FindAnyObjectByType<SessionManager>();
         sessionManager.OnSessionUpdate += UpdateLobbyData;
-        sessionManager.OnSessionHostUpdated += PlayerHostUpdate;
     }
 
     #region Lobby
@@ -90,7 +65,7 @@ public class LobbyNetworkState : NetworkBehaviour
     {
         if (IsHost == false)
         {
-            sessionManager.LeaveSessionAsClient();
+            sessionManager.LeaveSession();
 
             return;
         }
@@ -99,12 +74,14 @@ public class LobbyNetworkState : NetworkBehaviour
         playersState.RemoveAt(playerIndex);
     }
 
-    public void PlayerHostUpdate(string playerID)
+    #endregion
+
+    #region RPC
+
+    [Rpc(SendTo.Server)]
+    private void TogglePlayerReadyRpc(FixedString64Bytes id)
     {
-        if (IsHost == false)
-        {
-            return;
-        }
+        TogglePlayerReady(id);
     }
 
     #endregion
@@ -141,15 +118,24 @@ public class LobbyNetworkState : NetworkBehaviour
         return -1;
     }
 
-    private void ResetVariables()
+    public List<PlayerData> GetLobbyPlayers()
     {
-        lobbyState.Value = new LobbyData();
-        playersState.Clear();
+        List<PlayerData> playersToReturn = new List<PlayerData>();
+
+        foreach (PlayerData player in PlayersState)
+        {
+            playersToReturn.Add(player);
+        }
+
+        return playersToReturn;
     }
 
-    [Rpc(SendTo.Server)]
-    private void TogglePlayerReadyRpc(FixedString64Bytes id)
+    private void ResetVariables()
     {
-        TogglePlayerReady(id);
+        if (IsHost == true)
+        {
+            lobbyState.Value = new LobbyData();
+            playersState.Clear();
+        }
     }
 }

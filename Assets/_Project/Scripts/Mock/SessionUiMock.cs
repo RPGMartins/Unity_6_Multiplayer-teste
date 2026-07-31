@@ -1,33 +1,34 @@
-using System;
+using Unity.Services.Authentication;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 
 public class SessionUiMock : MonoBehaviour
 {
     [SerializeField] protected SessionManager sessionManager;
+    [SerializeField] private AuthenticationManager authenticationManager;
+    [SerializeField] private LobbyUIManager lobbyUIManager;
 
-    [SerializeField] private LobbyManager lobbyManager;
-
-    public LobbyManager LobbyManager => lobbyManager;
+    public LobbyUIManager LobbyUIManager => lobbyUIManager;
     public SessionManager SessionManager => sessionManager;
 
     private void Awake()
     {
-        sessionManager.OnAuthenticatedSucceed += SessionManagerOnOnAuthenticatedSucceed;
-        sessionManager.OnAuthenticatedFailed += SessionManagerOnOnAuthenticatedFailed;
-        sessionManager.OnSessionLostConnection += SessionManagerOnOnSessionLostConnection;
+        authenticationManager.OnAuthenticatedSucceed += DebugAuthenticatedSucceed;
+        authenticationManager.OnAuthenticatedFailed += DebugAuthenticatedFailed;
+        sessionManager.OnSessionLostConnection += DebugLostConnection;
     }
 
-    private void SessionManagerOnOnSessionLostConnection()
+    private void DebugLostConnection(ISession session)
     {
         Debug.Log($"OnSessionLostConnection");
     }
 
-    private void SessionManagerOnOnAuthenticatedSucceed()
+    private void DebugAuthenticatedSucceed(IAuthenticationService authenticationService)
     {
         Debug.Log("OnAuthenticatedSucceed");
     }
 
-    private void SessionManagerOnOnAuthenticatedFailed()
+    private void DebugAuthenticatedFailed()
     {
         Debug.Log("OnAuthenticatedFailed");
     }
