@@ -1,13 +1,14 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.Services.Multiplayer;
+using UnityEngine;
 
 public class LobbyNetworkState : NetworkBehaviour
 {
     private NetworkVariable<LobbyData> lobbyState = new NetworkVariable<LobbyData>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     private NetworkList<PlayerData> playersState;
-
-    private SessionManager sessionManager;
 
     public NetworkVariable<LobbyData> LobbyState => lobbyState;
     public NetworkList<PlayerData> PlayersState => playersState;
@@ -25,9 +26,6 @@ public class LobbyNetworkState : NetworkBehaviour
     private void Awake()
     {
         playersState = new NetworkList<PlayerData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
-
-        sessionManager = FindAnyObjectByType<SessionManager>();
-        sessionManager.OnSessionUpdate += UpdateLobbyData;
     }
 
     #region Lobby
@@ -39,12 +37,12 @@ public class LobbyNetworkState : NetworkBehaviour
             return;
         }
 
-        UpdateLobbyData(new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode));
+        lobbyState.Value = new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode);
     }
 
-    private void UpdateLobbyData(LobbyData lobbyData)
+    public void UpdateSessionData(ISession session)
     {
-        lobbyState.Value = lobbyData;
+        CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
     }
 
     #endregion
@@ -61,16 +59,16 @@ public class LobbyNetworkState : NetworkBehaviour
         playersState.Add(new PlayerData(playerData));
     }
 
-    public void PlayerLeft(string playerID)
+    public void PlayerLeft(string playerID, Action leftCallback)
     {
         if (IsHost == false)
         {
-            sessionManager.LeaveSession();
+            leftCallback.Invoke();
 
             return;
         }
 
-        int playerIndex = GetPlayerDataIndex(playerID);
+        int playerIndex = GetPlayerIndexByAuthenticateID(playerID);
         playersState.RemoveAt(playerIndex);
     }
 
@@ -84,6 +82,21 @@ public class LobbyNetworkState : NetworkBehaviour
         TogglePlayerReady(id);
     }
 
+    [Rpc(SendTo.Server)]
+    public void UpdatePlayerIDRpc(string playerID, RpcParams rpcParams = default)
+    {
+        if (IsHost == false)
+        {
+            return;
+        }
+
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        int index = GetPlayerIndexByAuthenticateID(playerID);
+        PlayerData tempPlayerData = playersState[index];
+        tempPlayerData.SetClientID(clientId);
+        playersState[index] = tempPlayerData;
+    }
+
     #endregion
 
     public void TogglePlayerReady(FixedString64Bytes id)
@@ -95,7 +108,7 @@ public class LobbyNetworkState : NetworkBehaviour
             return;
         }
 
-        int playerIndex = GetPlayerDataIndex(id);
+        int playerIndex = GetPlayerIndexByAuthenticateID(id);
 
         if (playerIndex >= 0)
         {
@@ -105,7 +118,7 @@ public class LobbyNetworkState : NetworkBehaviour
         }
     }
 
-    private int GetPlayerDataIndex(FixedString64Bytes id)
+    public int GetPlayerIndexByAuthenticateID(FixedString64Bytes id)
     {
         for (int i = 0; i < playersState.Count; i++)
         {
@@ -116,6 +129,25 @@ public class LobbyNetworkState : NetworkBehaviour
         }
 
         return -1;
+    }
+
+    public int GetPlayerIndexByClientID(ulong clientID)
+    {
+        for (int i = 0; i < playersState.Count; i++)
+        {
+            if (playersState[i].ClientId.Equals(clientID))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+    
+    public PlayerData GetPlayerDataByClientID(ulong clientID)
+    {
+        int index = GetPlayerIndexByClientID(clientID);
+        return playersState[index];
     }
 
     public List<PlayerData> GetLobbyPlayers()

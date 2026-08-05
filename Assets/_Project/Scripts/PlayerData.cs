@@ -7,20 +7,28 @@ using UnityEngine;
 public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 {
     [SerializeField] private bool isReady;
+    private ulong clientId;
     public FixedString64Bytes Name;
     public FixedString64Bytes AuthenticationId;
 
     public bool IsReady => isReady;
+    public ulong ClientId => clientId;
 
-    public PlayerData(PlayerData playerData) : this(playerData.AuthenticationId, playerData.Name)
+    public PlayerData(PlayerData playerData) : this(playerData.AuthenticationId, playerData.clientId, playerData.Name)
     {
     }
 
-    public PlayerData(FixedString64Bytes authenticationId, FixedString64Bytes playerName)
+    public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName)
     {
         AuthenticationId = authenticationId;
+        this.clientId = clientId;
         Name = playerName;
         isReady = false;
+    }
+
+    public void SetClientID(ulong clientId)
+    {
+        this.clientId = clientId;
     }
 
     public void SetReady(bool ready)
@@ -38,12 +46,14 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         serializer.SerializeValue(ref isReady);
         serializer.SerializeValue(ref Name);
         serializer.SerializeValue(ref AuthenticationId);
+        serializer.SerializeValue(ref clientId);
     }
 
     public bool Equals(PlayerData other)
     {
         return isReady == other.isReady &&
                Name.Equals(other.Name) &&
+               clientId.Equals(other.clientId) &&
                AuthenticationId.Equals(other.AuthenticationId);
     }
 
@@ -54,7 +64,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(isReady, Name, AuthenticationId);
+        return HashCode.Combine(isReady, Name, AuthenticationId, clientId);
     }
 
     private static FixedString64Bytes ToFixedString(string value)

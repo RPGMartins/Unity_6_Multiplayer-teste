@@ -17,25 +17,11 @@ public class SessionUiMockEditor : Editor
     private string joinCode;
     private string playerName;
 
-    private ISession sessionToUse;
-    private SessionManager sessionManager;
+    private LobbyManager lobbyManager;
 
     private void Awake()
     {
-        sessionManager = ((SessionUiMock)target).SessionManager;
-        sessionManager.OnSessionConnected += SessionManagerOnOnSessionConnected;
-        sessionManager.OnSessionLostConnection += SessionManagerOnOnSessionLostConnection;
-        sessionManager.OnSessionEnded += SessionManagerOnOnSessionLostConnection;
-    }
-
-    private void SessionManagerOnOnSessionConnected(ISession session)
-    {
-        sessionToUse = session;
-    }
-
-    private void SessionManagerOnOnSessionLostConnection(ISession session)
-    {
-        sessionToUse = null;
+        lobbyManager = ((SessionUiMock)target).LobbyManager;
     }
 
     public override void OnInspectorGUI()
@@ -55,7 +41,7 @@ public class SessionUiMockEditor : Editor
 
         EditorGUILayout.EndVertical();
 
-        if (sessionToUse == null)
+        if (lobbyManager.CurrentSession == null)
         {
             EditorGUILayout.Space(10);
             EditorGUILayout.BeginVertical();
@@ -68,17 +54,17 @@ public class SessionUiMockEditor : Editor
 
             if (GUILayout.Button("Create Session"))
             {
-                sessionManager.CreateSessionAsHost(CreateSessionOptions());
+                lobbyManager.CreateSession(CreateSessionOptions());
             }
 
             if (GUILayout.Button("Create Random Session"))
             {
-                sessionManager.CreateSessionAsHost(CreateSessionOptions(GetRandomName()));
+                lobbyManager.CreateSession(CreateSessionOptions(GetRandomName()));
             }
 
             if (GUILayout.Button("Update Session"))
             {
-                sessionManager.CreateSessionAsHost(CreateSessionOptions(GetRandomName()));
+                lobbyManager.UpdateSessionData(isPrivate, GetRandomName());
             }
 
             EditorGUILayout.Space(20);
@@ -90,24 +76,24 @@ public class SessionUiMockEditor : Editor
 
             if (GUILayout.Button("Join Session"))
             {
-                sessionManager.JoinSessionByCode(joinCode);
+                lobbyManager.JoinSession(joinCode);
             }
 
             if (GUILayout.Button("Quick Join"))
             {
-                sessionManager.QuickJoinLobby();
+                lobbyManager.QuickJoinSession();
             }
 
             if (GUILayout.Button("Rejoin Session"))
             {
-                sessionManager.RejoinSession();
+                lobbyManager.ReconnectSession();
             }
         }
         else
         {
             if (GUILayout.Button("Exit Session"))
             {
-                sessionManager.LeaveSession();
+                lobbyManager.LeaveSession();
             }
         }
     }
@@ -116,6 +102,7 @@ public class SessionUiMockEditor : Editor
     {
         return new SessionOptions
         {
+            Type = "Lobby",
             MaxPlayers = playersQuantity,
             IsPrivate = isPrivate,
             Name = lobbyName,
@@ -127,6 +114,7 @@ public class SessionUiMockEditor : Editor
     {
         return new SessionOptions
         {
+            Type = "Lobby",
             MaxPlayers = Random.Range(2, 8),
             IsPrivate = isPrivate,
             Name = serverName,

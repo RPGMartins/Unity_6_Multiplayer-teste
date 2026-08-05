@@ -7,16 +7,15 @@ public class LobbyUiMockEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-        SessionManager sessionManager = ((LobbyUiMock)target).SessionManager;
-        LobbyManager lobbyUIManager = ((LobbyUiMock)target).LobbyManager;
+        LobbyManager lobbyManager = ((LobbyUiMock)target).LobbyManager;
 
-        if (sessionManager.CurrentSession != null)
+        if (lobbyManager.CurrentSession != null)
         {
-            if (sessionManager.CurrentSession.IsHost == true)
+            if (lobbyManager.CurrentSession.IsHost == true)
             {
                 if (GUILayout.Button("Randomize Lobby Name"))
                 {
-                    sessionManager.UpdateSessionData(sessionManager.CurrentSession.IsPrivate, SessionUiMockEditor.GetRandomName());
+                    lobbyManager.UpdateSessionData(lobbyManager.CurrentSession.IsPrivate, SessionUiMockEditor.GetRandomName());
                 }
 
                 if (GUILayout.Button("Start Match"))
@@ -26,19 +25,20 @@ public class LobbyUiMockEditor : Editor
 
             if (GUILayout.Button("Toggle Ready"))
             {
-                lobbyUIManager.ToggleCurrentPlayerReady();
+                lobbyManager.ToggleCurrentPlayerReady();
             }
 
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Lobby Options");
-            EditorGUILayout.LabelField($"Name: {lobbyUIManager.GetLobbyName()}");
-            EditorGUILayout.LabelField($"Code: {lobbyUIManager.GetLobbyCode()}");
-            EditorGUILayout.LabelField($"Host: {sessionManager.CurrentSession.Host}");
+            EditorGUILayout.LabelField($"Name: {lobbyManager.GetLobbyName()}");
+            EditorGUILayout.LabelField($"Code: {lobbyManager.GetLobbyCode()}");
+            EditorGUILayout.LabelField($"Host: {lobbyManager.CurrentSession.Host}");
 
-            foreach (PlayerData player in lobbyUIManager.GetLobbyPlayers())
+            foreach (PlayerData player in lobbyManager.GetLobbyPlayers())
             {
                 EditorGUILayout.Space(10);
-                EditorGUILayout.LabelField($"PlayerID: {player.AuthenticationId}");
+                EditorGUILayout.LabelField($"AuthenticateID: {player.AuthenticationId}");
+                EditorGUILayout.LabelField($"PlayerID: {player.ClientId}");
                 EditorGUILayout.LabelField($"PlayerName: {player.Name}");
                 EditorGUILayout.LabelField($"IsReady: {player.IsReady}");
             }

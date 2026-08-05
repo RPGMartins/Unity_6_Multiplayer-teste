@@ -163,50 +163,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &483516471
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 483516473}
-  - component: {fileID: 483516472}
-  m_Layer: 0
-  m_Name: SessionManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &483516472
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483516471}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6292fdf3292d93941bd775bf8e760e2e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SessionManager
---- !u!4 &483516473
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 483516471}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1121890735
 GameObject:
   m_ObjectHideFlags: 0
@@ -218,7 +174,6 @@ GameObject:
   - component: {fileID: 1121890737}
   - component: {fileID: 1121890739}
   - component: {fileID: 1121890740}
-  - component: {fileID: 1121890736}
   - component: {fileID: 1121890738}
   m_Layer: 0
   m_Name: LobbyManager
@@ -227,18 +182,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1121890736
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1121890735}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a736ed4d0df452046a90a54082475def, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyManager
 --- !u!4 &1121890737
 Transform:
   m_ObjectHideFlags: 0
@@ -306,8 +249,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyManager
   authenticationManager: {fileID: 410183728}
-  sessionManager: {fileID: 483516472}
-  lobbyUIManager: {fileID: 1121890736}
   lobbyNetworkState: {fileID: 1121890738}
 --- !u!1 &1568438779
 GameObject:
@@ -583,9 +524,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11ba3d02a1db0f4439c46db51ba9be4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyUiMock
-  sessionManager: {fileID: 483516472}
-  authenticationManager: {fileID: 410183728}
-  lobbyUIManager: {fileID: 1121890736}
+  lobbyManager: {fileID: 1121890740}
 --- !u!4 &1911194625
 Transform:
   m_ObjectHideFlags: 0
@@ -613,7 +552,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d14d76722dd8b049b6324bd59144dfc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LobbyUiMock
-  sessionManager: {fileID: 483516472}
   lobbyManager: {fileID: 1121890740}
 --- !u!114 &1911194627
 MonoBehaviour:
@@ -654,7 +592,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 1568438782}
   - {fileID: 1911194625}
-  - {fileID: 483516473}
   - {fileID: 1121890737}
   - {fileID: 1615369136}
   - {fileID: 410183729}
