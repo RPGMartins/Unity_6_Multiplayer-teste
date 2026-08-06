@@ -32,7 +32,7 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public void CreateLobbyData(int maxPlayers, bool isPrivate, string lobbyName, string lobbyCode)
     {
-        if (IsHost == false)
+        if (IsServer == false)
         {
             return;
         }
@@ -51,7 +51,7 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public void PlayerJoined(PlayerData playerData)
     {
-        if (IsHost == false)
+        if (IsServer == false)
         {
             return;
         }
@@ -61,7 +61,7 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public void PlayerLeft(string playerID, Action leftCallback)
     {
-        if (IsHost == false)
+        if (IsServer == false)
         {
             leftCallback.Invoke();
 
@@ -85,7 +85,7 @@ public class LobbyNetworkState : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void UpdatePlayerIDRpc(string playerID, RpcParams rpcParams = default)
     {
-        if (IsHost == false)
+        if (IsServer == false)
         {
             return;
         }
@@ -101,7 +101,7 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public void TogglePlayerReady(FixedString64Bytes id)
     {
-        if (IsHost == false)
+        if (IsServer == false)
         {
             TogglePlayerReadyRpc(id);
 
@@ -143,10 +143,11 @@ public class LobbyNetworkState : NetworkBehaviour
 
         return -1;
     }
-    
+
     public PlayerData GetPlayerDataByClientID(ulong clientID)
     {
         int index = GetPlayerIndexByClientID(clientID);
+
         return playersState[index];
     }
 
@@ -164,7 +165,7 @@ public class LobbyNetworkState : NetworkBehaviour
 
     private void ResetVariables()
     {
-        if (IsHost == true)
+        if (IsServer == true)
         {
             lobbyState.Value = new LobbyData();
             playersState.Clear();

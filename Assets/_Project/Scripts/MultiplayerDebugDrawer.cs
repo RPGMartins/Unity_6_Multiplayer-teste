@@ -111,7 +111,7 @@ public class MultiplayerDebugDrawer
             return;
         }
 
-        if (lobbyManager.CurrentSession.IsHost == true)
+        if (lobbyManager.CurrentSession.IsServer == true)
         {
             DrawTextField("Nome do Lobby:", ref lobbyName);
             isPrivate = GUILayout.Toggle(isPrivate, "Sala Privada");

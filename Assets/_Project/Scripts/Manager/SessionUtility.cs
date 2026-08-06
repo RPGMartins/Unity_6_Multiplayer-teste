@@ -187,7 +187,7 @@ public static class SessionUtility
 
     public static async Task UpdateSessionData(ISession currentSession, bool isPrivate, string lobbyName, Action<ISession> onSessionUpdate, Action onStartTrySessionUpdate, Action<SessionError> onSessionUpdateFailed)
     {
-        if (currentSession.IsHost == false)
+        if (currentSession.IsServer == false)
         {
             return;
         }
@@ -220,7 +220,7 @@ public static class SessionUtility
 
     public static async Task RemovePlayerFromSession(ISession currentSession, string authenticateID, Action onStartTryRemovePlayerFromSession, Action<ISession> onRemovePlayerFromSession, Action<SessionError> onRemovePlayerFromSessionFailed)
     {
-        if (currentSession.IsHost == false)
+        if (currentSession.IsServer == false)
         {
             return;
         }
