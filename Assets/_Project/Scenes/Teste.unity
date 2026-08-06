@@ -502,9 +502,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1911194625}
-  - component: {fileID: 1911194624}
-  - component: {fileID: 1911194626}
   - component: {fileID: 1911194627}
+  - component: {fileID: 1911194628}
   m_Layer: 0
   m_Name: Mock
   m_TagString: Untagged
@@ -512,19 +511,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1911194624
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1911194623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11ba3d02a1db0f4439c46db51ba9be4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyUiMock
-  lobbyManager: {fileID: 1121890740}
 --- !u!4 &1911194625
 Transform:
   m_ObjectHideFlags: 0
@@ -540,19 +526,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1911194626
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1911194623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6d14d76722dd8b049b6324bd59144dfc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LobbyUiMock
-  lobbyManager: {fileID: 1121890740}
 --- !u!114 &1911194627
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -586,6 +559,21 @@ MonoBehaviour:
         <PacketJitterMs>k__BackingField: 0
         <PacketLossInterval>k__BackingField: 0
         <PacketLossPercent>k__BackingField: 0
+--- !u!114 &1911194628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1911194623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76a553091b045c447a88b7cb349706af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MultiplayerRuntimeDebugUI
+  uiScale: 1.5
+  panelPosition: {x: 10, y: 10}
+  panelSize: {x: 500, y: 700}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

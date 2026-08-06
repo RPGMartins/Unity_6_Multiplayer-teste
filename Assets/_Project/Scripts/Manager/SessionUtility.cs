@@ -8,28 +8,17 @@ using Random = UnityEngine.Random;
 
 public static class SessionUtility
 {
-    public static event Action<ISession> OnSessionConnected;
-    public static event Action<SessionError> OnSessionConnectFailed;
-    public static event Action<ISession> OnSessionDisconnect;
-    public static event Action<SessionError> OnSessionDisconnectFailed;
-
-    public static event Action OnStartTryConnectToSession;
-    public static event Action OnStartTryDisconnectFromSession;
-
-    public static event Action OnSessionLostConnection;
-    public static event Action<ISession> OnSessionUpdate;
-
     private static bool isCreatingSession;
 
     #region Create Session
 
-    public static async Task CreateSessionAsHost(SessionOptions options)
+    public static async Task CreateSessionAsHost(SessionOptions options, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
-        OnStartTryConnectToSession?.Invoke();
+        onStartTryConnectToSession?.Invoke();
 
         if (CanCreateSession() == false)
         {
-            OnSessionConnectFailed?.Invoke(SessionError.None);
+            onSessionConnectFailed?.Invoke(SessionError.None);
 
             return;
         }
@@ -39,15 +28,15 @@ public static class SessionUtility
         try
         {
             IHostSession currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
-            OnSessionConnected?.Invoke(currentSession);
+            onSessionConnected?.Invoke(currentSession);
         }
         catch (SessionException exception)
         {
-            OnSessionConnectFailed?.Invoke(exception.Error);
+            onSessionConnectFailed?.Invoke(exception.Error);
         }
         catch (Exception e)
         {
-            OnSessionConnectFailed?.Invoke(SessionError.None);
+            onSessionConnectFailed?.Invoke(SessionError.None);
         }
         finally
         {
@@ -59,9 +48,9 @@ public static class SessionUtility
 
     #region Join Session
 
-    public static async Task JoinSessionByCode(string joinCode)
+    public static async Task JoinSessionByCode(string joinCode, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
-        OnStartTryConnectToSession?.Invoke();
+        onStartTryConnectToSession?.Invoke();
 
         try
         {
@@ -71,21 +60,21 @@ public static class SessionUtility
             };
 
             ISession currentSession = await MultiplayerService.Instance.JoinSessionByCodeAsync(joinCode, joinSession);
-            OnSessionConnected?.Invoke(currentSession);
+            onSessionConnected?.Invoke(currentSession);
         }
         catch (SessionException exception)
         {
-            OnSessionConnectFailed?.Invoke(exception.Error);
+            onSessionConnectFailed?.Invoke(exception.Error);
         }
         catch (Exception e)
         {
-            OnSessionConnectFailed?.Invoke(SessionError.None);
+            onSessionConnectFailed?.Invoke(SessionError.None);
         }
     }
 
-    private static async Task JoinSessionByID(string joinID)
+    private static async Task JoinSessionByID(string joinID, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
-        OnStartTryConnectToSession?.Invoke();
+        onStartTryConnectToSession?.Invoke();
 
         try
         {
@@ -95,30 +84,30 @@ public static class SessionUtility
             };
 
             ISession currentSession = await MultiplayerService.Instance.JoinSessionByIdAsync(joinID, joinSession);
-            OnSessionConnected?.Invoke(currentSession);
+            onSessionConnected?.Invoke(currentSession);
         }
         catch (SessionException exception)
         {
-            OnSessionConnectFailed?.Invoke(exception.Error);
+            onSessionConnectFailed?.Invoke(exception.Error);
         }
         catch (Exception e)
         {
-            OnSessionConnectFailed?.Invoke(SessionError.None);
+            onSessionConnectFailed?.Invoke(SessionError.None);
         }
     }
 
-    public static async Task QuickJoinLobby()
+    public static async Task QuickJoinLobby(Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
         QuerySessionsOptions querySessionsOptions = new QuerySessionsOptions();
         QuerySessionsResults querySessionsResults = await MultiplayerService.Instance.QuerySessionsAsync(querySessionsOptions);
 
         ISessionInfo session = querySessionsResults.Sessions[Random.Range(0, querySessionsResults.Sessions.Count)];
-        await JoinSessionByID(session.Id);
+        await JoinSessionByID(session.Id, onSessionConnected, onStartTryConnectToSession, onSessionConnectFailed);
     }
 
-    public static async Task ReconnectSession(ISession currentSession, string playerID)
+    public static async Task ReconnectSession(ISession currentSession, string playerID, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
-        OnStartTryConnectToSession?.Invoke();
+        onStartTryConnectToSession?.Invoke();
 
         if (currentSession != null)
         {
@@ -130,15 +119,15 @@ public static class SessionUtility
                 {
                     await currentSession.ReconnectAsync();
                     NetworkManager.Singleton.StartClient();
-                    OnSessionConnected?.Invoke(currentSession);
+                    onSessionConnected?.Invoke(currentSession);
                 }
                 catch (SessionException exception)
                 {
-                    OnSessionConnectFailed?.Invoke(exception.Error);
+                    onSessionConnectFailed?.Invoke(exception.Error);
                 }
                 catch (Exception e)
                 {
-                    OnSessionConnectFailed?.Invoke(SessionError.None);
+                    onSessionConnectFailed?.Invoke(SessionError.None);
                 }
 
                 return;
@@ -157,15 +146,15 @@ public static class SessionUtility
             string sessionId = sessionIds[0];
             currentSession = await MultiplayerService.Instance.ReconnectToSessionAsync(sessionId);
             NetworkManager.Singleton.StartClient();
-            OnSessionConnected?.Invoke(currentSession);
+            onSessionConnected?.Invoke(currentSession);
         }
         catch (SessionException exception)
         {
-            OnSessionConnectFailed?.Invoke(exception.Error);
+            onSessionConnectFailed?.Invoke(exception.Error);
         }
         catch (Exception e)
         {
-            OnSessionConnectFailed?.Invoke(SessionError.None);
+            onSessionConnectFailed?.Invoke(SessionError.None);
         }
     }
 
@@ -173,22 +162,22 @@ public static class SessionUtility
 
     #region Leave Session
 
-    public static async Task LeaveSession(ISession currentSession)
+    public static async Task LeaveSession(ISession currentSession, Action<ISession> onSessionDisconnect, Action onStartTryDisconnectFromSession, Action<SessionError> onSessionDisconnectFailed)
     {
-        OnStartTryDisconnectFromSession?.Invoke();
+        onStartTryDisconnectFromSession?.Invoke();
 
         try
         {
             await currentSession.LeaveAsync();
-            OnSessionDisconnect?.Invoke(currentSession);
+            onSessionDisconnect?.Invoke(currentSession);
         }
         catch (SessionException sessionException)
         {
-            OnSessionDisconnectFailed?.Invoke(sessionException.Error);
+            onSessionDisconnectFailed?.Invoke(sessionException.Error);
         }
         catch (Exception e)
         {
-            OnSessionDisconnectFailed?.Invoke(SessionError.None);
+            onSessionDisconnectFailed?.Invoke(SessionError.None);
         }
     }
 
@@ -196,19 +185,15 @@ public static class SessionUtility
 
     #region Update Session
 
-    public static async Task UpdateSessionData(ISession currentSession, bool isPrivate, string lobbyName)
+    public static async Task UpdateSessionData(ISession currentSession, bool isPrivate, string lobbyName, Action<ISession> onSessionUpdate, Action onStartTrySessionUpdate, Action<SessionError> onSessionUpdateFailed)
     {
         if (currentSession.IsHost == false)
         {
             return;
         }
 
-        await UpdateSessionAsync(currentSession, isPrivate, lobbyName);
-        OnSessionUpdate?.Invoke(currentSession);
-    }
+        onStartTrySessionUpdate?.Invoke();
 
-    private static async Task UpdateSessionAsync(ISession currentSession, bool isPrivate, string lobbyName)
-    {
         try
         {
             IHostSession hostSession = currentSession.AsHost();
@@ -217,9 +202,15 @@ public static class SessionUtility
             hostSession.IsPrivate = isPrivate;
 
             await hostSession.SavePropertiesAsync();
+            onSessionUpdate?.Invoke(currentSession);
         }
-        catch (SessionException e)
+        catch (SessionException sessionException)
         {
+            onSessionUpdateFailed?.Invoke(sessionException.Error);
+        }
+        catch (Exception e)
+        {
+            onSessionUpdateFailed?.Invoke(SessionError.None);
         }
     }
 
@@ -227,12 +218,32 @@ public static class SessionUtility
 
     #region Kick Session
 
-    public static void KickClient(ISession currentSession, string clientAuthenticateID)
+    public static async Task RemovePlayerFromSession(ISession currentSession, string authenticateID, Action onStartTryRemovePlayerFromSession, Action<ISession> onRemovePlayerFromSession, Action<SessionError> onRemovePlayerFromSessionFailed)
     {
-        currentSession.AsHost().RemovePlayerAsync(clientAuthenticateID);
+        if (currentSession.IsHost == false)
+        {
+            return;
+        }
+
+        onStartTryRemovePlayerFromSession?.Invoke();
+
+        try
+        {
+            await currentSession.AsHost().RemovePlayerAsync(authenticateID);
+            onRemovePlayerFromSession?.Invoke(currentSession);
+        }
+        catch (SessionException sessionException)
+        {
+            onRemovePlayerFromSessionFailed?.Invoke(sessionException.Error);
+        }
+        catch (Exception e)
+        {
+            onRemovePlayerFromSessionFailed?.Invoke(SessionError.None);
+        }
     }
 
     #endregion
+
     private static bool CanCreateSession()
     {
         if (isCreatingSession == true)
