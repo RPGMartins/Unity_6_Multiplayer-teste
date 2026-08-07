@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using Unity.Services.Multiplayer;
@@ -31,8 +32,10 @@ public class LobbyManager : MonoBehaviour
 
     private void Awake()
     {
-        OnSessionConnected += CreateLobbyAndPlayersData;
-        OnSessionDisconnect += PlayerLeft;
+        DontDestroyOnLoad(this);
+
+        OnSessionConnected += PlayerJoinedSession;
+        OnSessionDisconnect += PlayerLeftSession;
         OnSessionUpdate += lobbyNetworkState.UpdateSessionData;
 
         lobbyNetworkState.LobbyState.OnValueChanged += LobbyDataValueChanged;
@@ -46,8 +49,8 @@ public class LobbyManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        OnSessionConnected -= CreateLobbyAndPlayersData;
-        OnSessionDisconnect -= PlayerLeft;
+        OnSessionConnected -= PlayerJoinedSession;
+        OnSessionDisconnect -= PlayerLeftSession;
         OnSessionUpdate -= lobbyNetworkState.UpdateSessionData;
 
         if (lobbyNetworkState != null)
@@ -59,21 +62,6 @@ public class LobbyManager : MonoBehaviour
         if (NetworkManager.Singleton != null)
         {
             NetworkManager.Singleton.OnClientDisconnectCallback -= RemoveClient;
-        }
-    }
-
-    private void RemoveClient(ulong clientID)
-    {
-        Debug.Log("ClientID: " + clientID);
-        PlayerData playerData = lobbyNetworkState.GetPlayerDataByClientID(clientID);
-
-        SessionUtility.RemovePlayerFromSession(currentSession.AsHost(), playerData.AuthenticationId.ToString(), OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
-
-        if (clientID == 0) // is Host
-        {
-        }
-        else
-        {
         }
     }
 
@@ -106,7 +94,7 @@ public class LobbyManager : MonoBehaviour
 
     public void ReconnectSession()
     {
-        SessionUtility.ReconnectSession(currentSession, authenticationManager.PlayerID, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        SessionUtility.ReconnectSession(currentSession, authenticationManager.AuthenticationID, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public void LeaveLobby()
@@ -121,11 +109,18 @@ public class LobbyManager : MonoBehaviour
 
     #endregion
 
-    private void CreateLobbyAndPlayersData(ISession session)
+    private void PlayerJoinedSession(ISession session)
     {
         currentSession = session;
-        session.PlayerJoined += CurrentSessionOnPlayerJoined;
-        session.PlayerHasLeft += (id) => lobbyNetworkState.PlayerLeft(id, LeaveLobby);
+        session.PlayerJoined += PlayerJoined;
+        session.PlayerHasLeft += PlayerLeft;
+
+        StartCoroutine(StartLobby(session));
+    }
+
+    private IEnumerator StartLobby(ISession session)
+    {
+        yield return new WaitUntil(() => lobbyNetworkState.IsSpawned == true);
 
         foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
         {
@@ -135,17 +130,18 @@ public class LobbyManager : MonoBehaviour
         }
 
         lobbyNetworkState.CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
-        lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.PlayerID);
+        lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID);
     }
 
-    private void PlayerLeft(ISession session)
+    private void PlayerLeftSession(ISession session)
     {
-        session.PlayerJoined -= CurrentSessionOnPlayerJoined;
+        session.PlayerJoined -= PlayerJoined;
+        session.PlayerHasLeft -= PlayerLeft;
 
         currentSession = null;
     }
 
-    private void CurrentSessionOnPlayerJoined(string id)
+    private void PlayerJoined(string id)
     {
         foreach (IReadOnlyPlayer readOnlyPlayer in currentSession.Players)
         {
@@ -155,16 +151,66 @@ public class LobbyManager : MonoBehaviour
             }
 
             lobbyNetworkState.PlayerJoined(new PlayerData(id, UInt64.MaxValue, "GuestPlayer"));
-            lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.PlayerID);
+            lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID);
 
             break;
         }
     }
 
+    private void PlayerLeft(string authenticateID)
+    {
+        if (CurrentSession.IsHost == true)
+        {
+            lobbyNetworkState.PlayerLeft(authenticateID);
+
+            if (authenticationManager.AuthenticationID == authenticateID)
+            {
+                LeaveLobby();
+            }
+        }
+        else
+        {
+            if (authenticationManager.AuthenticationID == authenticateID)
+            {
+                LeaveLobby();
+            }
+        }
+    }
+
+    private void RemoveClient(ulong clientID)
+    {
+        PlayerData playerData = lobbyNetworkState.GetPlayerDataByClientID(clientID);
+
+        if (playerData.AuthenticationID == authenticationManager.AuthenticationID)
+        {
+            LeaveLobby();
+        }
+        else if (CurrentSession.IsServer == true)
+        {
+            RemovePlayer(playerData.AuthenticationID.ToString());
+        }
+    }
+
+    private void RemovePlayer(string authenticateID)
+    {
+        SessionUtility.RemovePlayerFromSession(currentSession.AsHost(), authenticateID, OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
+    }
+
+    #region LobbyMethods
+
     public void ToggleCurrentPlayerReady()
     {
-        lobbyNetworkState.TogglePlayerReady(authenticationManager.PlayerID);
+        lobbyNetworkState.TogglePlayerReady(authenticationManager.AuthenticationID);
     }
+
+    public void StartMatch()
+    {
+        throw new NotImplementedException();
+    }
+
+    #endregion
+
+    #region Uttils
 
     public string GetLobbyName()
     {
@@ -185,4 +231,11 @@ public class LobbyManager : MonoBehaviour
     {
         return lobbyNetworkState.GetLobbyPlayers();
     }
+
+    public string GetHostID()
+    {
+        return CurrentSession.Host;
+    }
+
+    #endregion
 }

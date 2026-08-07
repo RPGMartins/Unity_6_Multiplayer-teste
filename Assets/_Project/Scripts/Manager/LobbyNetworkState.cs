@@ -18,11 +18,6 @@ public class LobbyNetworkState : NetworkBehaviour
         ResetVariables();
     }
 
-    public override void OnNetworkDespawn()
-    {
-        ResetVariables();
-    }
-
     private void Awake()
     {
         playersState = new NetworkList<PlayerData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
@@ -59,12 +54,10 @@ public class LobbyNetworkState : NetworkBehaviour
         playersState.Add(new PlayerData(playerData));
     }
 
-    public void PlayerLeft(string playerID, Action leftCallback)
+    public void PlayerLeft(string playerID)
     {
         if (IsServer == false)
         {
-            leftCallback.Invoke();
-
             return;
         }
 
@@ -118,11 +111,11 @@ public class LobbyNetworkState : NetworkBehaviour
         }
     }
 
-    public int GetPlayerIndexByAuthenticateID(FixedString64Bytes id)
+    private int GetPlayerIndexByAuthenticateID(FixedString64Bytes id)
     {
         for (int i = 0; i < playersState.Count; i++)
         {
-            if (playersState[i].AuthenticationId.Equals(id))
+            if (playersState[i].AuthenticationID.Equals(id))
             {
                 return i;
             }
@@ -131,7 +124,7 @@ public class LobbyNetworkState : NetworkBehaviour
         return -1;
     }
 
-    public int GetPlayerIndexByClientID(ulong clientID)
+    private int GetPlayerIndexByClientID(ulong clientID)
     {
         for (int i = 0; i < playersState.Count; i++)
         {
@@ -146,9 +139,12 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public PlayerData GetPlayerDataByClientID(ulong clientID)
     {
-        int index = GetPlayerIndexByClientID(clientID);
+        return playersState[GetPlayerIndexByClientID(clientID)];
+    }
 
-        return playersState[index];
+    public PlayerData GetPlayerDataByAuthenticateID(string clientID)
+    {
+        return playersState[GetPlayerIndexByAuthenticateID(clientID)];
     }
 
     public List<PlayerData> GetLobbyPlayers()

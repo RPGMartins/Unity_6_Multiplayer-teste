@@ -9,18 +9,18 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     [SerializeField] private bool isReady;
     private ulong clientId;
     public FixedString64Bytes Name;
-    public FixedString64Bytes AuthenticationId;
+    public FixedString64Bytes AuthenticationID;
 
     public bool IsReady => isReady;
     public ulong ClientId => clientId;
 
-    public PlayerData(PlayerData playerData) : this(playerData.AuthenticationId, playerData.clientId, playerData.Name)
+    public PlayerData(PlayerData playerData) : this(playerData.AuthenticationID, playerData.clientId, playerData.Name)
     {
     }
 
     public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName)
     {
-        AuthenticationId = authenticationId;
+        AuthenticationID = authenticationId;
         this.clientId = clientId;
         Name = playerName;
         isReady = false;
@@ -45,7 +45,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     {
         serializer.SerializeValue(ref isReady);
         serializer.SerializeValue(ref Name);
-        serializer.SerializeValue(ref AuthenticationId);
+        serializer.SerializeValue(ref AuthenticationID);
         serializer.SerializeValue(ref clientId);
     }
 
@@ -54,7 +54,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         return isReady == other.isReady &&
                Name.Equals(other.Name) &&
                clientId.Equals(other.clientId) &&
-               AuthenticationId.Equals(other.AuthenticationId);
+               AuthenticationID.Equals(other.AuthenticationID);
     }
 
     public override bool Equals(object obj)
@@ -64,7 +64,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(isReady, Name, AuthenticationId, clientId);
+        return HashCode.Combine(isReady, Name, AuthenticationID, clientId);
     }
 
     private static FixedString64Bytes ToFixedString(string value)

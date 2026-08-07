@@ -130,16 +130,24 @@ public class MultiplayerDebugDrawer
         GUILayout.Label("Lobby Options");
         GUILayout.Label($"Name: {lobbyManager.GetLobbyName()}");
         GUILayout.Label($"Code: {lobbyManager.GetLobbyCode()}");
-        GUILayout.Label($"Host: {lobbyManager.CurrentSession.Host}");
+        GUILayout.Label($"Host: {lobbyManager.GetHostID()}");
         GUILayout.Label($"Privado: {lobbyManager.GetLobbyIsPrivate()}");
 
         foreach (PlayerData player in lobbyManager.GetLobbyPlayers())
         {
             GUILayout.Space(10);
-            GUILayout.Label($"AuthenticateID: {player.AuthenticationId}");
+            GUILayout.Label($"AuthenticateID: {player.AuthenticationID}");
             GUILayout.Label($"ClientID: {player.ClientId}");
             GUILayout.Label($"PlayerName: {player.Name}");
             GUILayout.Label($"IsReady: {player.IsReady}");
+        }
+
+        if (lobbyManager.CurrentSession.IsServer == true)
+        {
+            if (GUILayout.Button("Start Match"))
+            {
+                lobbyManager.StartMatch();
+            }
         }
 
         if (GUILayout.Button("Toggle Ready"))
