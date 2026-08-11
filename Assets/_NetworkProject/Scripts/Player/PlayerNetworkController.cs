@@ -3,14 +3,19 @@ using UnityEngine;
 
 public class PlayerNetworkController : NetworkBehaviour
 {
-    [SerializeField] private PlayerMovement playerMovement;
+    [SerializeField] private PlayerController playerController;
 
     public override void OnNetworkSpawn()
     {
         if (IsOwner == false)
         {
             Destroy(this);
-            Destroy(playerMovement);
+            Destroy(playerController.PlayerMovement.Target.gameObject);
+            Destroy(playerController.PlayerMovement);
+            Destroy(playerController.PlayerInventory);
+            Destroy(playerController.PlayerAnimation);
+            Destroy(playerController.PlayerInput);
+            Destroy(playerController);
         }
     }
 }

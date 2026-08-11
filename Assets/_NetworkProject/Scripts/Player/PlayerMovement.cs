@@ -1,35 +1,35 @@
-using Unity.Netcode;
+using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [SerializeField] private Transform transformToMove;
+    [SerializeField] private Transform target;
     [SerializeField] private float velocity = 1;
+
+    private Func<Vector2> movementAction;
+    private Func<Vector3> mouseMovementAction;
+
+    public Transform Target => target;
+
+    public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector)
+    {
+        this.movementAction = movementVector;
+        this.mouseMovementAction = mouseMovementVector;
+    }
 
     private void Update()
     {
-        Vector3 position = Vector3.zero;
+        Vector3 movement = movementAction.Invoke();
+        transformToMove.position += movement * (velocity * Time.deltaTime);
+        target.position = mouseMovementAction.Invoke();
+        RotateTowardsTarget();
+    }
 
-        if (Keyboard.current.wKey.isPressed == true || Keyboard.current.upArrowKey.isPressed == true)
-        {
-            position.y += 1;
-        }
-
-        if (Keyboard.current.sKey.isPressed == true || Keyboard.current.downArrowKey.isPressed == true)
-        {
-            position.y += -1;
-        }
-
-        if (Keyboard.current.aKey.isPressed == true || Keyboard.current.leftArrowKey.isPressed == true)
-        {
-            position.x += -1;
-        }
-
-        if (Keyboard.current.dKey.isPressed == true || Keyboard.current.rightArrowKey.isPressed == true)
-        {
-            position.x += 1;
-        }
-
-        transform.position += position * (velocity * Time.deltaTime);
+    private void RotateTowardsTarget()
+    {
+        Vector2 direction = target.position - transformToMove.position;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transformToMove.rotation = Quaternion.Euler(0, 0, angle);
     }
 }
