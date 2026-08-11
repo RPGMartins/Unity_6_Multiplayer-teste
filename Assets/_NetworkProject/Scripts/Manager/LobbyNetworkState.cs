@@ -7,11 +7,12 @@ using UnityEngine;
 
 public class LobbyNetworkState : NetworkBehaviour
 {
-    private NetworkVariable<LobbyData> lobbyState = new NetworkVariable<LobbyData>(default, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    private NetworkVariable<LobbyData> lobbyData = new NetworkVariable<LobbyData>();
     private NetworkList<PlayerData> playersState;
-
-    public NetworkVariable<LobbyData> LobbyState => lobbyState;
+    private NetworkVariable<LobbyStateEnum> lobbyStateEnum = new NetworkVariable<LobbyStateEnum>();
+    public NetworkVariable<LobbyData> LobbyData => lobbyData;
     public NetworkList<PlayerData> PlayersState => playersState;
+    public NetworkVariable<LobbyStateEnum> LobbyStateEnum => lobbyStateEnum;
 
     public override void OnNetworkSpawn()
     {
@@ -32,12 +33,22 @@ public class LobbyNetworkState : NetworkBehaviour
             return;
         }
 
-        lobbyState.Value = new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode);
+        lobbyData.Value = new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode);
     }
 
     public void UpdateSessionData(ISession session)
     {
         CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
+    }
+
+    public void UpdateLobbyStateEnum(LobbyStateEnum lobbyStateEnum)
+    {
+        if (IsServer == false)
+        {
+            return;
+        }
+
+        this.lobbyStateEnum.Value = lobbyStateEnum;
     }
 
     #endregion
@@ -161,10 +172,13 @@ public class LobbyNetworkState : NetworkBehaviour
 
     private void ResetVariables()
     {
-        if (IsServer == true)
+        if (IsServer == false)
         {
-            lobbyState.Value = new LobbyData();
-            playersState.Clear();
+            return;
         }
+
+        lobbyData.Value = new LobbyData();
+        playersState.Clear();
+        lobbyStateEnum.Value = global::LobbyStateEnum.OnLobby;
     }
 }

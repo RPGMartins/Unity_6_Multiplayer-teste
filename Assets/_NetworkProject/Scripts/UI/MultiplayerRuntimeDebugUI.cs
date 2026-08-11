@@ -16,7 +16,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
 
     private LobbyManager lobbyManager;
     private NetworkSimulator networkSimulator;
-
+    private SceneControllerManager sceneControllerManager;
     private MultiplayerDebugDrawer sharedDrawer;
 
     private bool isVisible = true;
@@ -26,6 +26,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
     {
         lobbyManager = FindAnyObjectByType<LobbyManager>();
         networkSimulator = FindAnyObjectByType<NetworkSimulator>();
+        sceneControllerManager = FindAnyObjectByType<SceneControllerManager>();
 
         sharedDrawer = new MultiplayerDebugDrawer();
     }
@@ -59,7 +60,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
         GUILayout.BeginArea(new Rect(panelPosition.x, panelPosition.y, panelWidth, panelHeight), "Multiplayer Debug", GUI.skin.window);
 
         scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-        sharedDrawer.Draw(lobbyManager, networkSimulator);
+        sharedDrawer.Draw(lobbyManager, networkSimulator, sceneControllerManager);
 
         GUILayout.Space(10f);
         GUILayout.Label("F1: mostrar/esconder");

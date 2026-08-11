@@ -8,6 +8,7 @@ public class NetworkTesteWindow : EditorWindow
 {
     private LobbyManager lobbyManager;
     private NetworkSimulator networkSimulator;
+    private SceneControllerManager sceneControllerManager;
 
     private MultiplayerDebugDrawer multiplayerDebugDrawer;
 
@@ -30,6 +31,7 @@ public class NetworkTesteWindow : EditorWindow
     {
         lobbyManager = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
         networkSimulator = FindFirstObjectByType<NetworkSimulator>(FindObjectsInactive.Include);
+        sceneControllerManager = FindFirstObjectByType<SceneControllerManager>(FindObjectsInactive.Include);
 
         if (lobbyManager == null || networkSimulator == null)
         {
@@ -94,7 +96,7 @@ public class NetworkTesteWindow : EditorWindow
         lobbyTab = new VisualElement();
         lobbyTab.style.flexGrow = 1;
 
-        IMGUIContainer lobbyContainer = new IMGUIContainer(() => { multiplayerDebugDrawer.Draw(lobbyManager, null); });
+        IMGUIContainer lobbyContainer = new IMGUIContainer(() => { multiplayerDebugDrawer.Draw(lobbyManager, null, sceneControllerManager); });
 
         lobbyContainer.style.flexGrow = 1;
         lobbyTab.Add(lobbyContainer);

@@ -16,18 +16,9 @@ public class AuthenticationManager : MonoBehaviour
     public string AuthenticationID => authenticationService.PlayerId;
     public string PlayerName => authenticationService.PlayerName;
 
-    private void Awake()
+    public void Initialize()
     {
         InitializeAsync();
-    }
-
-    private void Update()
-    {
-        if (updateName)
-        {
-            updateName = false;
-            UpdatePlayerName("HSADJLGTH");
-        }
     }
 
     private async void InitializeAsync()

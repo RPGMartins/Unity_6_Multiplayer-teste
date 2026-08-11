@@ -12,7 +12,7 @@ public class MultiplayerDebugDrawer
     private string joinCode = string.Empty;
     private bool isPrivate;
 
-    public void Draw(LobbyManager lobbyManager, NetworkSimulator networkSimulator)
+    public void Draw(LobbyManager lobbyManager, NetworkSimulator networkSimulator, SceneControllerManager sceneControllerManager)
     {
         if (networkSimulator != null)
         {
@@ -22,10 +22,14 @@ public class MultiplayerDebugDrawer
 
         if (lobbyManager != null)
         {
-            DrawCreateLobby(lobbyManager);
-            DrawJoinLobby(lobbyManager);
-            GUILayout.Space(20);
-            DrawLobbyOptions(lobbyManager);
+            if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnLobby)
+            {
+                DrawCreateLobby(lobbyManager);
+                DrawJoinLobby(lobbyManager);
+                GUILayout.Space(20);
+            }
+
+            DrawLobbyOptions(lobbyManager, sceneControllerManager);
         }
     }
 
@@ -88,7 +92,7 @@ public class MultiplayerDebugDrawer
 
         DrawTextField("Código da sala:", ref joinCode);
 
-        if (GUILayout.Button("Join Session"))
+        if (GUILayout.Button("Join Lobby"))
         {
             lobbyManager.JoinSession(joinCode);
         }
@@ -98,13 +102,13 @@ public class MultiplayerDebugDrawer
             lobbyManager.QuickJoinSession();
         }
 
-        if (GUILayout.Button("Rejoin Session"))
+        if (GUILayout.Button("Rejoin Lobby"))
         {
             lobbyManager.ReconnectSession();
         }
     }
 
-    private void DrawLobbyOptions(LobbyManager lobbyManager)
+    private async void DrawLobbyOptions(LobbyManager lobbyManager, SceneControllerManager sceneControllerManager)
     {
         if (lobbyManager.CurrentSession == null)
         {
@@ -142,22 +146,40 @@ public class MultiplayerDebugDrawer
             GUILayout.Label($"IsReady: {player.IsReady}");
         }
 
-        if (lobbyManager.CurrentSession.IsServer == true)
+        if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnLobby)
         {
-            if (GUILayout.Button("Start Match"))
+            if (lobbyManager.CurrentSession.IsHost == true)
             {
-                lobbyManager.StartMatch();
+                if (GUILayout.Button("Start Match"))
+                {
+                    sceneControllerManager.GotoGameplayScene();
+                }
+            }
+
+            if (GUILayout.Button("Toggle Ready"))
+            {
+                lobbyManager.ToggleCurrentPlayerReady();
+            }
+        }
+        else if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
+        {
+            if (lobbyManager.CurrentSession.IsHost == true)
+            {
+                if (GUILayout.Button("Back To Lobby"))
+                {
+                    sceneControllerManager.GotoMainMenuScene();
+                }
             }
         }
 
-        if (GUILayout.Button("Toggle Ready"))
+        if (GUILayout.Button("Leave Lobby"))
         {
-            lobbyManager.ToggleCurrentPlayerReady();
-        }
+            await lobbyManager.LeaveLobby();
 
-        if (GUILayout.Button("Exit Session"))
-        {
-            lobbyManager.LeaveLobby();
+            if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
+            {
+                sceneControllerManager.GotoMainMenuScene();
+            }
         }
     }
 
