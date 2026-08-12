@@ -7,7 +7,7 @@ public class PlayerInput : MonoBehaviour
     private Vector2 movement;
     private int currentSlotPressed = -1;
     private Vector2 currentMousePosition;
-
+    private bool interacting;
     public event Action<int> onSlotPressed;
 
     private Camera cam;
@@ -85,6 +85,17 @@ public class PlayerInput : MonoBehaviour
         }
 
         #endregion
+
+        #region Interacting
+
+        interacting = false;
+
+        if (Keyboard.current.eKey.isPressed == true)
+        {
+            interacting = true;
+        }
+
+        #endregion
     }
 
     public Vector2 GetMovement()
@@ -95,5 +106,10 @@ public class PlayerInput : MonoBehaviour
     public Vector3 GetMousePosition()
     {
         return currentMousePosition;
+    }
+
+    public bool Interacting()
+    {
+        return interacting;
     }
 }

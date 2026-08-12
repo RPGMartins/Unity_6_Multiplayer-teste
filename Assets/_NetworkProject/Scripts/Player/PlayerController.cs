@@ -7,30 +7,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private PlayerInventory playerInventory;
     [SerializeField] private PlayerAnimation playerAnimation;
     [SerializeField] private PlayerInput playerInput;
+    [SerializeField] private PlayerInteract playerInteract;
     public PlayerMovement PlayerMovement => playerMovement;
     public PlayerInventory PlayerInventory => playerInventory;
     public PlayerAnimation PlayerAnimation => playerAnimation;
     public PlayerInput PlayerInput => playerInput;
+    public PlayerInteract PlayerInteract => playerInteract;
 
     private void Awake()
     {
-        playerInput.onSlotPressed += playerInventory.EquipSlot;
+        playerInput.onSlotPressed += playerInventory.EquipSlotWeapon;
 
         playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition);
         playerAnimation.Initialize(playerInventory);
-    }
-
-    private void Start()
-    {
-        InventoryItem inventoryItemFlashlight = new InventoryItem(WeaponType.Flashlight);
-        InventoryItem inventoryItemPistol = new InventoryItem(WeaponType.Pistol);
-        InventoryItem inventoryItemShotgun = new InventoryItem(WeaponType.Shotgun);
-        InventoryItem inventoryItemRifle = new InventoryItem(WeaponType.Rifle);
-
-        playerInventory.AddItem(inventoryItemFlashlight);
-        playerInventory.AddItem(inventoryItemPistol);
-        playerInventory.AddItem(inventoryItemShotgun);
-        playerInventory.AddItem(inventoryItemRifle);
-        playerInventory.EquipSlot(0);
+        playerInteract.Initialize(playerInventory, playerInput.Interacting);
     }
 }

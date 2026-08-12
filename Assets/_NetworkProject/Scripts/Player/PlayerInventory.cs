@@ -4,27 +4,56 @@ using UnityEngine;
 
 public class PlayerInventory : MonoBehaviour
 {
-    [SerializeField] private readonly List<InventoryItem> items = new List<InventoryItem>();
-    [SerializeField] private InventoryItem currentItem;
+    [SerializeField] private List<WeaponItem> weapons = new List<WeaponItem>();
+    [SerializeField] private List<BaseItem> items = new List<BaseItem>();
+
+    [SerializeField] private WeaponItem currentWeaponItem;
 
     public event Action OnInventoryChanged;
-    public event Action<InventoryItem> onEquippedSlotChanged;
+    public event Action<WeaponItem> onEquippedSlotChanged;
 
-    public void AddItem(InventoryItem item)
+    private void Start()
     {
-        items.Add(item);
+        WeaponItem inventoryItemPistol = new WeaponItem("", ItemTypeEnum.Weapon, WeaponTypeEnum.Pistol);
+        WeaponItem inventoryItemFlashlight = new WeaponItem("", ItemTypeEnum.Weapon, WeaponTypeEnum.Flashlight);
+
+        AddWeapon(inventoryItemFlashlight);
+        AddWeapon(inventoryItemPistol);
+        EquipSlotWeapon(0);
+    }
+
+    public void AddItemToInventory(BaseItem baseItem)
+    {
+        if (baseItem is WeaponItem weaponItem)
+        {
+            AddWeapon(weaponItem);
+        }
+        else
+        {
+            AddItem(baseItem);
+        }
 
         OnInventoryChanged?.Invoke();
     }
 
-    public void EquipSlot(int slot)
+    private void AddWeapon(WeaponItem weaponItem)
     {
-        if (slot < 0 || slot >= items.Count || items[slot] == currentItem)
+        weapons.Add(weaponItem);
+    }
+
+    private void AddItem(BaseItem baseItem)
+    {
+        items.Add(baseItem);
+    }
+
+    public void EquipSlotWeapon(int slot)
+    {
+        if (slot < 0 || slot >= weapons.Count || weapons[slot] == currentWeaponItem)
         {
             return;
         }
 
-        currentItem = items[slot];
-        onEquippedSlotChanged?.Invoke(currentItem);
+        currentWeaponItem = weapons[slot];
+        onEquippedSlotChanged?.Invoke(currentWeaponItem);
     }
 }

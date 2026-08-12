@@ -9,26 +9,26 @@ public class PlayerAnimation : MonoBehaviour
         playerInventory.onEquippedSlotChanged += ChangeWeaponAnimation;
     }
 
-    private void ChangeWeaponAnimation(InventoryItem item)
+    private void ChangeWeaponAnimation(WeaponItem item)
     {
-        switch (item.WeaponType)
+        switch (item.WeaponTypeEnum)
         {
-            case WeaponType.Flashlight:
+            case WeaponTypeEnum.Flashlight:
                 animator.Play("IdleFlashlight");
 
                 break;
 
-            case WeaponType.Pistol:
+            case WeaponTypeEnum.Pistol:
                 animator.Play("IdlePistol");
 
                 break;
 
-            case WeaponType.Shotgun:
+            case WeaponTypeEnum.Shotgun:
                 animator.Play("IdleShotgun");
 
                 break;
 
-            case WeaponType.Rifle:
+            case WeaponTypeEnum.Rifle:
                 animator.Play("IdleRifle");
 
                 break;
