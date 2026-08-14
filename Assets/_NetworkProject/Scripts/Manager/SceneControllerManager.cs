@@ -75,11 +75,11 @@ public class SceneControllerManager : NetworkBehaviour
         if (sceneName == gameplaySceneName)
         {
             lobbyStateCallback?.Invoke(LobbyStateEnum.OnGameplay);
-            GameplayNetworkManager gameplayNetworkManager = FindAnyObjectByType<GameplayNetworkManager>();
+            PlayerSpawner playerSpawner = FindAnyObjectByType<PlayerSpawner>();
 
             foreach (ulong client in clientsCompleted)
             {
-                CallSpawnPlayer(gameplayNetworkManager, client);
+                CallSpawnPlayer(playerSpawner, client);
             }
         }
         else if (sceneName == mainMenuSceneName)
@@ -96,13 +96,13 @@ public class SceneControllerManager : NetworkBehaviour
         else if (SceneManager.GetActiveScene().name == gameplaySceneName)
         {
             Debug.Log("TERMINEI DE SINCRONIZAR pra gameplay: " + clientid);
-            GameplayNetworkManager gameplayNetworkManager = FindAnyObjectByType<GameplayNetworkManager>();
-            CallSpawnPlayer(gameplayNetworkManager, clientid);
+            PlayerSpawner playerSpawner = FindAnyObjectByType<PlayerSpawner>();
+            CallSpawnPlayer(playerSpawner, clientid);
         }
     }
 
-    private void CallSpawnPlayer(GameplayNetworkManager gameplayNetworkManager, ulong clientID)
+    private void CallSpawnPlayer(PlayerSpawner playerSpawner, ulong clientID)
     {
-        gameplayNetworkManager.SpawnPlayerPrefab(clientID);
+        playerSpawner.SpawnPlayerPrefab(clientID);
     }
 }

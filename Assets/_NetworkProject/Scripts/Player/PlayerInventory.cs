@@ -17,33 +17,46 @@ public class PlayerInventory : MonoBehaviour
         WeaponItem inventoryItemPistol = new WeaponItem("", ItemTypeEnum.Weapon, WeaponTypeEnum.Pistol);
         WeaponItem inventoryItemFlashlight = new WeaponItem("", ItemTypeEnum.Weapon, WeaponTypeEnum.Flashlight);
 
-        AddWeapon(inventoryItemFlashlight);
-        AddWeapon(inventoryItemPistol);
+        TryAddWeapon(inventoryItemFlashlight);
+        TryAddWeapon(inventoryItemPistol);
         EquipSlotWeapon(0);
     }
 
-    public void AddItemToInventory(BaseItem baseItem)
+    public bool TryAddItemToInventory(BaseItem baseItem)
     {
+        bool addedItem = false;
+
         if (baseItem is WeaponItem weaponItem)
         {
-            AddWeapon(weaponItem);
+            addedItem = TryAddWeapon(weaponItem);
         }
         else
         {
-            AddItem(baseItem);
+            addedItem = TryAddItem(baseItem);
+        }
+
+        if (addedItem == false)
+        {
+            return false;
         }
 
         OnInventoryChanged?.Invoke();
+
+        return true;
     }
 
-    private void AddWeapon(WeaponItem weaponItem)
+    private bool TryAddWeapon(WeaponItem weaponItem)
     {
         weapons.Add(weaponItem);
+
+        return true;
     }
 
-    private void AddItem(BaseItem baseItem)
+    private bool TryAddItem(BaseItem baseItem)
     {
         items.Add(baseItem);
+
+        return true;
     }
 
     public void EquipSlotWeapon(int slot)

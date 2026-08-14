@@ -10,7 +10,7 @@ public class WeaponItemData : ItemData
 
     public override BaseItem ToBaseItem()
     {
-        WeaponItem weaponItem = new WeaponItem(ItemName, ItemTypeEnum, weaponTypeEnum);
+        WeaponItem weaponItem = new WeaponItem(ItemID, ItemTypeEnum, weaponTypeEnum);
 
         return weaponItem;
     }

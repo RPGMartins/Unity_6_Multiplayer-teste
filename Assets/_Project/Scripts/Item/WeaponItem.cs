@@ -8,7 +8,7 @@ public class WeaponItem : BaseItem
 
     public WeaponTypeEnum WeaponTypeEnum => weaponTypeEnum;
 
-    public WeaponItem(string itemName, ItemTypeEnum itemTypeEnum, WeaponTypeEnum weaponTypeEnum) : base(itemName, itemTypeEnum)
+    public WeaponItem(string itemID, ItemTypeEnum itemTypeEnum, WeaponTypeEnum weaponTypeEnum) : base(itemID, itemTypeEnum)
     {
         this.weaponTypeEnum = weaponTypeEnum;
     }

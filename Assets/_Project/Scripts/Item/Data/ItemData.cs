@@ -3,10 +3,10 @@ using UnityEngine;
 
 public abstract class ItemData : ScriptableObject
 {
-    [SerializeField] private String itemName;
+    [SerializeField] private string itemID;
     [SerializeField] private ItemTypeEnum itemTypeEnum;
 
-    public String ItemName => itemName;
+    public string ItemID => itemID;
     public ItemTypeEnum ItemTypeEnum => itemTypeEnum;
 
     public abstract BaseItem ToBaseItem();

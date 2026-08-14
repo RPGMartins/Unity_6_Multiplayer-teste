@@ -114,7 +114,35 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2006026893791693928, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8205550575037238299}
+    - targetCorrespondingSourceObject: {fileID: 2006026893791693928, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5298922846193123543}
+    - targetCorrespondingSourceObject: {fileID: 2402377032337672419, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2050028526256978702}
+    - targetCorrespondingSourceObject: {fileID: 1178930744157845456, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8997101400205456809}
   m_SourcePrefab: {fileID: 100100000, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+--- !u!1 &1370656647317117642 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1178930744157845456, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+  m_PrefabInstance: {fileID: 241483224374439194}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8997101400205456809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370656647317117642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2b6e328c94ab9f439bf1c25adda5fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkInteractHandler
+  ShowTopMostFoldoutHeaderGroup: 1
+  localInteractHandler: {fileID: 4047962109957750634}
 --- !u!1 &1769700671010398578 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2006026893791693928, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
@@ -212,6 +240,64 @@ MonoBehaviour:
   AnimatorParameterEntries:
     ParameterEntries: []
   AnimatorParametersExpanded: 0
+--- !u!114 &5298922846193123543
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1769700671010398578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 80d7c879794dfda4687da0e400131852, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody2D
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkRigidbodyBaseExpanded: 0
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 0
+  AutoSetKinematicOnDespawn: 0
+--- !u!114 &1825880608644260739 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1877788889478729369, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+  m_PrefabInstance: {fileID: 241483224374439194}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2454213960879482361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81133e347bc2f4645a58edfbb7fe6a15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
+--- !u!1 &2454213960879482361 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2402377032337672419, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+  m_PrefabInstance: {fileID: 241483224374439194}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2050028526256978702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2454213960879482361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6146b22ea513e834c9974466fa16f2ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventoryNetwork
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerInventory: {fileID: 1825880608644260739}
+--- !u!114 &4047962109957750634 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4284237853988770416, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+  m_PrefabInstance: {fileID: 241483224374439194}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1370656647317117642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b916f059264fba43a14d20eba3d780c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractHandler
 --- !u!95 &6901744135538001353 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 6673771766418843859, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}

@@ -1,17 +1,23 @@
 using System;
+using UnityEngine;
 
-public class GroundItem : Interactable
+public class GroundItem : MonoBehaviour, IInteractable
 {
+    [SerializeField] private GameObject parentGameObject;
     private BaseItem currentItem;
+    private Action<GroundItem> despawnAction;
 
-    public void Initialize(BaseItem item)
+    public BaseItem CurrentItem => currentItem;
+    public GameObject ParentGameObject => parentGameObject;
+
+    public void Initialize(BaseItem item, Action<GroundItem> despawnAction)
     {
         this.currentItem = item;
+        this.despawnAction = despawnAction;
     }
 
-    public void Interact(PlayerInventory playerInventory)
+    public void CallDespawn()
     {
-        playerInventory.AddItemToInventory(currentItem);
-        Destroy(gameObject);
+        despawnAction.Invoke(this);
     }
 }

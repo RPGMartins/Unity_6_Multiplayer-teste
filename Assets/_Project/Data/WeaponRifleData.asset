@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df00a234b10169945b0b872493722212, type: 3}
   m_Name: WeaponRifleData
   m_EditorClassIdentifier: Assembly-CSharp::WeaponItemData
-  itemName: Rifle
+  itemID: Rifle
   itemTypeEnum: 0
   weaponTypeEnum: 3

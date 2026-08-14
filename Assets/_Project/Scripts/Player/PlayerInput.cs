@@ -50,7 +50,15 @@ public class PlayerInput : MonoBehaviour
 
         #region Mouse Aim
 
-        currentMousePosition = cam.ScreenToWorldPoint(Mouse.current.position.value);
+        Vector2 mousePos = Mouse.current.position.value;
+
+        if (float.IsFinite(mousePos.x) == false || float.IsFinite(mousePos.y) == false)
+        {
+        }
+        else
+        {
+            currentMousePosition = cam.ScreenToWorldPoint(mousePos);
+        }
 
         #endregion
 

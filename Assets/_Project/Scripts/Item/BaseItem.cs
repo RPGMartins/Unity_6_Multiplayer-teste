@@ -4,15 +4,15 @@ using UnityEngine;
 [Serializable]
 public class BaseItem
 {
-    [SerializeField] private string itemName;
+    [SerializeField] private string itemID;
     [SerializeField] private ItemTypeEnum itemTypeEnum;
 
-    public string ItemName => itemName;
+    public string ItemID => itemID;
     public ItemTypeEnum ItemTypeEnum => itemTypeEnum;
 
-    public BaseItem(string itemName, ItemTypeEnum itemTypeEnum)
+    public BaseItem(string itemID, ItemTypeEnum itemTypeEnum)
     {
-        this.itemName = itemName;
+        this.itemID = itemID;
         this.itemTypeEnum = itemTypeEnum;
     }
 }

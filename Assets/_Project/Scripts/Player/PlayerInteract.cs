@@ -1,47 +1,47 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerInteract : MonoBehaviour
 {
-    private Interactable currentInteractable;
-    private PlayerInventory playerInventory;
+    private InterfaceInteractHandler interfaceInteractHandler;
+    private IInteractable currentInteractable;
 
     private Func<bool> interacting;
 
     public void Initialize(PlayerInventory playerInventory, Func<bool> interacting)
     {
-        this.playerInventory = playerInventory;
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening == true)
+        {
+            interfaceInteractHandler = GetComponentInChildren<NetworkInteractHandler>();
+        }
+        else
+        {
+            interfaceInteractHandler = GetComponentInChildren<LocalInteractHandler>();
+        }
+
         this.interacting = interacting;
+        interfaceInteractHandler.Initialize(playerInventory);
     }
 
     private void Update()
     {
-        bool interact = interacting.Invoke();
-
-        if (interact == true)
+        if (interacting.Invoke() == false)
         {
-            Interact();
+            return;
         }
-    }
 
-    private void Interact()
-    {
-        if (currentInteractable != null)
+        if (currentInteractable == null)
         {
-            if (currentInteractable is GroundItem groundItem)
-            {
-                groundItem.Interact(playerInventory);
-            }
-            else
-            {
-                currentInteractable.Interact();
-            }
+            return;
         }
+
+        interfaceInteractHandler.Interact(currentInteractable);
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        Interactable interactable = other.gameObject.GetComponentInParent<Interactable>();
+        IInteractable interactable = other.gameObject.transform.parent.GetComponentInChildren<IInteractable>();
 
         if (interactable == null)
         {
@@ -53,7 +53,7 @@ public class PlayerInteract : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        Interactable interactable = other.gameObject.GetComponentInParent<Interactable>();
+        IInteractable interactable = other.gameObject.transform.parent.GetComponentInChildren<IInteractable>();
 
         if (interactable == null)
         {
