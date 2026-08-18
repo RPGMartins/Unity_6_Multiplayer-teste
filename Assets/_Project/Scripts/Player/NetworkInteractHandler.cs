@@ -1,4 +1,4 @@
-using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,8 +6,13 @@ public class NetworkInteractHandler : NetworkBehaviour, InterfaceInteractHandler
 {
     [SerializeField] private LocalInteractHandler localInteractHandler;
 
-    public void Initialize(PlayerInventory inventory)
+    private ulong clientID;
+    private FixedString64Bytes playerID;
+
+    public void Initialize(FixedString64Bytes playerID, ulong clientID)
     {
+        this.clientID = clientID;
+        this.playerID = playerID;
     }
 
     public void Interact(IInteractable interactable)
@@ -15,15 +20,16 @@ public class NetworkInteractHandler : NetworkBehaviour, InterfaceInteractHandler
         if (interactable is GroundItem groundItem)
         {
             NetworkObject currnetNetworkObject = groundItem.GetComponentInParent<NetworkObject>();
-            CheckWithServerIfGetGroundItemRPC(new NetworkObjectReference(currnetNetworkObject));
+            CheckWithServerIfGetGroundItemRPC(new NetworkObjectReference(currnetNetworkObject), clientID, playerID);
+        }
+        else if (false)
+        {
         }
     }
 
     [Rpc(SendTo.Server)]
-    private void CheckWithServerIfGetGroundItemRPC(NetworkObjectReference netoNetworkObjectReference, RpcParams rpcParams = default)
+    private void CheckWithServerIfGetGroundItemRPC(NetworkObjectReference netoNetworkObjectReference, ulong clientId, FixedString64Bytes playerID)
     {
-        ulong clientId = rpcParams.Receive.SenderClientId;
-
         if (netoNetworkObjectReference.TryGet(out NetworkObject networkObject) == false)
         {
             SendResultOfGetGroundItem(clientId, false);
@@ -52,9 +58,7 @@ public class NetworkInteractHandler : NetworkBehaviour, InterfaceInteractHandler
             return;
         }
 
-        PlayerInventoryNetwork inventoryNetwork = playerObject.GetComponentInChildren<PlayerInventoryNetwork>();
-
-        if (inventoryNetwork.ServerTryAddItemToInventory(groundItem.CurrentItem) == false)
+        if (InventoryManagerNetwork.Instance.AddItemToPlayer(groundItem.CurrentItem, playerID) == false)
         {
             SendResultOfGetGroundItem(clientId, false);
         }

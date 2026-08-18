@@ -12,7 +12,7 @@ public class PlayerNetworkController : NetworkBehaviour
             Destroy(this);
             Destroy(playerController.PlayerMovement.Target.gameObject);
             Destroy(playerController.PlayerMovement);
-            Destroy(playerController.PlayerInventory);
+            Destroy(playerController.PlayerLocalInventoryController);
             Destroy(playerController.PlayerAnimation);
             Destroy(playerController.PlayerInput);
             Destroy(playerController);

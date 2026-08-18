@@ -10,16 +10,24 @@ public class PlayerMovement : MonoBehaviour
     private Func<Vector2> movementAction;
     private Func<Vector3> mouseMovementAction;
 
+    private bool initialized = false;
+
     public Transform Target => target;
 
     public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector)
     {
         this.movementAction = movementVector;
         this.mouseMovementAction = mouseMovementVector;
+        initialized = true;
     }
 
     private void Update()
     {
+        if (initialized == false)
+        {
+            return;
+        }
+
         Vector3 movement = movementAction.Invoke();
         transformToMove.position += movement * (velocity * Time.deltaTime);
         target.position = mouseMovementAction.Invoke();

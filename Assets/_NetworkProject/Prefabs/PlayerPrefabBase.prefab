@@ -259,7 +259,7 @@ GameObject:
   - component: {fileID: 8897387506084649230}
   - component: {fileID: 1877788889478729369}
   m_Layer: 0
-  m_Name: PlayerInventory
+  m_Name: PlayerLocalInventoryController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -292,12 +292,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81133e347bc2f4645a58edfbb7fe6a15, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
-  weapons: []
-  items: []
-  currentWeaponItem:
-    itemID: 
-    itemTypeEnum: 0
-    weaponTypeEnum: 0
 --- !u!1 &4922173230376563077
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,7 +337,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerController
   playerMovement: {fileID: 8093020809236472634}
-  playerInventory: {fileID: 1877788889478729369}
+  playerLocalInventoryController: {fileID: 1877788889478729369}
   playerAnimation: {fileID: 3862897425745119228}
   playerInput: {fileID: 6984519824621560797}
   playerInteract: {fileID: 6409182250423228884}

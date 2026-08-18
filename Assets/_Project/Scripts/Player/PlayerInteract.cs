@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,7 +10,9 @@ public class PlayerInteract : MonoBehaviour
 
     private Func<bool> interacting;
 
-    public void Initialize(PlayerInventory playerInventory, Func<bool> interacting)
+    private bool initialized = false;
+
+    public void Initialize(Func<bool> interacting, ulong clientID, FixedString64Bytes playerID)
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening == true)
         {
@@ -20,12 +23,18 @@ public class PlayerInteract : MonoBehaviour
             interfaceInteractHandler = GetComponentInChildren<LocalInteractHandler>();
         }
 
+        interfaceInteractHandler.Initialize(playerID, clientID);
         this.interacting = interacting;
-        interfaceInteractHandler.Initialize(playerInventory);
+        initialized = true;
     }
 
     private void Update()
     {
+        if (initialized == false)
+        {
+            return;
+        }
+
         if (interacting.Invoke() == false)
         {
             return;

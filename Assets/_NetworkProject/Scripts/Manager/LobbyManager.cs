@@ -92,7 +92,7 @@ public class LobbyManager : MonoBehaviour
 
     public async Task ReconnectSession()
     {
-        await SessionUtility.ReconnectSession(currentSession, authenticationManager.AuthenticationID, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.ReconnectSession(currentSession, authenticationManager.AuthenticationID.ToString(), OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task LeaveLobby()
@@ -128,7 +128,7 @@ public class LobbyManager : MonoBehaviour
         }
 
         lobbyNetworkState.CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
-        lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID);
+        lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID.ToString());
     }
 
     private void PlayerLeftSession(ISession session)
@@ -149,7 +149,7 @@ public class LobbyManager : MonoBehaviour
             }
 
             lobbyNetworkState.PlayerJoined(new PlayerData(id, UInt64.MaxValue, "GuestPlayer"));
-            lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID);
+            lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID.ToString());
 
             break;
         }

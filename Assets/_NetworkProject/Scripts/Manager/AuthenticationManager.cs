@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
 using UnityEngine;
@@ -13,7 +14,7 @@ public class AuthenticationManager : MonoBehaviour
 
     [SerializeField] private bool updateName;
 
-    public string AuthenticationID => authenticationService.PlayerId;
+    public FixedString64Bytes AuthenticationID => authenticationService.PlayerId;
     public string PlayerName => authenticationService.PlayerName;
 
     public void Initialize()

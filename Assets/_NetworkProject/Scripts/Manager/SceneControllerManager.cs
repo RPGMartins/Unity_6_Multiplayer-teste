@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -75,11 +74,10 @@ public class SceneControllerManager : NetworkBehaviour
         if (sceneName == gameplaySceneName)
         {
             lobbyStateCallback?.Invoke(LobbyStateEnum.OnGameplay);
-            PlayerSpawner playerSpawner = FindAnyObjectByType<PlayerSpawner>();
 
-            foreach (ulong client in clientsCompleted)
+            foreach (ulong clientID in clientsCompleted)
             {
-                CallSpawnPlayer(playerSpawner, client);
+                PlayerInitializerNetwork.instance.SpawnPlayer(clientID);
             }
         }
         else if (sceneName == mainMenuSceneName)
@@ -95,14 +93,7 @@ public class SceneControllerManager : NetworkBehaviour
         }
         else if (SceneManager.GetActiveScene().name == gameplaySceneName)
         {
-            Debug.Log("TERMINEI DE SINCRONIZAR pra gameplay: " + clientid);
-            PlayerSpawner playerSpawner = FindAnyObjectByType<PlayerSpawner>();
-            CallSpawnPlayer(playerSpawner, clientid);
+            PlayerInitializerNetwork.instance.SpawnPlayer(clientid);
         }
-    }
-
-    private void CallSpawnPlayer(PlayerSpawner playerSpawner, ulong clientID)
-    {
-        playerSpawner.SpawnPlayerPrefab(clientID);
     }
 }

@@ -1,40 +1,12 @@
-using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerSpawner : MonoBehaviour
+public class PlayerSpawner : MonoBehaviour, IPlayerSpawner
 {
     [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private NetworkObject playerPrefabNetwork;
+    [SerializeField] private PlayerSpawnerController playerSpawnerController;
 
-    private void Awake()
+    public PlayerController SpawnPlayer(ulong clientID)
     {
-        if (NetworkConnectionChecker.CheckConnection() == true)
-        {
-            return;
-        }
-
-        SpawnPlayer();
-    }
-
-    public void SpawnPlayerPrefab(ulong clientID)
-    {
-        if (NetworkManager.Singleton.IsServer == false)
-        {
-            return;
-        }
-
-        SpawnPlayerNetwork(clientID);
-    }
-
-    private void SpawnPlayer()
-    {
-        GameObject instance = Instantiate(playerPrefab);
-    }
-
-    private void SpawnPlayerNetwork(ulong clientID)
-    {
-        NetworkObject instance = Instantiate(playerPrefabNetwork);
-        NetworkObject instanceNetworkObject = instance.GetComponent<NetworkObject>();
-        instanceNetworkObject.SpawnAsPlayerObject(clientID, true);
+        return playerSpawnerController.SpawnPlayer(playerPrefab);
     }
 }

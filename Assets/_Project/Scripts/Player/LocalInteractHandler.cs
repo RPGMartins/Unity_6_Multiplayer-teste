@@ -1,13 +1,14 @@
-using UnityEditor;
+using System;
+using Unity.Collections;
 using UnityEngine;
 
 public class LocalInteractHandler : MonoBehaviour, InterfaceInteractHandler
 {
-    private PlayerInventory playerInventory;
+    FixedString64Bytes playerID;
 
-    public void Initialize(PlayerInventory inventory)
+    public void Initialize(FixedString64Bytes playerID, ulong clientID)
     {
-        this.playerInventory = inventory;
+        this.playerID = playerID;
     }
 
     public void Interact(IInteractable interactable)
@@ -30,7 +31,9 @@ public class LocalInteractHandler : MonoBehaviour, InterfaceInteractHandler
 
     private bool AddItemToInventory(GroundItem groundItem)
     {
-        return playerInventory.TryAddItemToInventory(groundItem.CurrentItem);
+        InventoryManager.Instance.AddItemToPlayer(groundItem.CurrentItem, playerID);
+
+        return true;
     }
 
     public void GetGroundItemFeedBack(bool value)

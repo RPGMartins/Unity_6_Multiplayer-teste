@@ -4,9 +4,9 @@ public class PlayerAnimation : MonoBehaviour
 {
     [SerializeField] private Animator animator;
 
-    public void Initialize(PlayerInventory playerInventory)
+    public void Initialize(PlayerLocalInventoryController playerLocalInventoryController)
     {
-        playerInventory.onEquippedSlotChanged += ChangeWeaponAnimation;
+        playerLocalInventoryController.onEquippedSlotChanged += ChangeWeaponAnimation;
     }
 
     private void ChangeWeaponAnimation(WeaponItem item)
