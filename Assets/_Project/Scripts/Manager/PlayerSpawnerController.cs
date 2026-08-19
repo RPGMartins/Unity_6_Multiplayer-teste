@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class PlayerSpawnerController : MonoBehaviour
 {
-    public PlayerController SpawnPlayer(GameObject playerPrefab)
+    public IPlayerController SpawnPlayer(GameObject playerPrefab)
     {
         GameObject playerInstance = Instantiate(playerPrefab);
-        PlayerController playerController = playerInstance.GetComponentInChildren<PlayerController>();
+        IPlayerController playerController = playerInstance.GetComponentInChildren<IPlayerController>();
 
         return playerController;
     }

@@ -58,7 +58,7 @@ public class NetworkInteractHandler : NetworkBehaviour, InterfaceInteractHandler
             return;
         }
 
-        if (InventoryManagerNetwork.Instance.AddItemToPlayer(groundItem.CurrentItem, playerID) == false)
+        if (NetworkInventoryManager.Instance.ServerAddItem(groundItem.CurrentItem, playerID) == false)
         {
             SendResultOfGetGroundItem(clientId, false);
         }

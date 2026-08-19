@@ -79,6 +79,8 @@ public class SceneControllerManager : NetworkBehaviour
             {
                 PlayerInitializerNetwork.instance.SpawnPlayer(clientID);
             }
+
+            PlayerInitializerNetwork.instance.FinishInitialization();
         }
         else if (sceneName == mainMenuSceneName)
         {

@@ -5,7 +5,7 @@ public class PlayerSpawner : MonoBehaviour, IPlayerSpawner
     [SerializeField] private GameObject playerPrefab;
     [SerializeField] private PlayerSpawnerController playerSpawnerController;
 
-    public PlayerController SpawnPlayer(ulong clientID)
+    public IPlayerController SpawnPlayer(ulong clientID)
     {
         return playerSpawnerController.SpawnPlayer(playerPrefab);
     }

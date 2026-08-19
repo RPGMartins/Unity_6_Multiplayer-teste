@@ -31,7 +31,7 @@ public class LocalInteractHandler : MonoBehaviour, InterfaceInteractHandler
 
     private bool AddItemToInventory(GroundItem groundItem)
     {
-        InventoryManager.Instance.AddItemToPlayer(groundItem.CurrentItem, playerID);
+        InventoryManager.Instance.ServerAddItem(groundItem.CurrentItem, playerID);
 
         return true;
     }

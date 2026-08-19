@@ -533,10 +533,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameInitializerNetwork
   ShowTopMostFoldoutHeaderGroup: 1
-  playerInitializer: {fileID: 1921877317}
+  playerInitializerSingleplayer: {fileID: 1921877317}
   playerSpawnerNetwork: {fileID: 1942166970}
-  inventoryManagerNetwork: {fileID: 79592188}
-  playerInitializerUtils: {fileID: 1779944822}
+  networkInventoryManager: {fileID: 79592188}
+  playerInitializer: {fileID: 1779944822}
 --- !u!1 &1046276665
 GameObject:
   m_ObjectHideFlags: 0
@@ -609,7 +609,7 @@ Transform:
   m_GameObject: {fileID: 1307548267}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.83058, y: -2.49008, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -783,7 +783,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bf7c4ca4ec97e9408bc2e07831a29e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInitializerUtils
-  createdPlayers: []
 --- !u!1 &1846688286
 GameObject:
   m_ObjectHideFlags: 0
@@ -907,7 +906,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 145a18d838f62d645baa6d25b58dbe7e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameInitializer
-  playerInitializerUtils: {fileID: 1779944822}
+  playerInitializer: {fileID: 1779944822}
   playerSpawner: {fileID: 677772311}
   inventoryManager: {fileID: 1307548268}
 --- !u!4 &1921877318
@@ -919,7 +918,7 @@ Transform:
   m_GameObject: {fileID: 1921877316}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.83058, y: -2.49008, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:

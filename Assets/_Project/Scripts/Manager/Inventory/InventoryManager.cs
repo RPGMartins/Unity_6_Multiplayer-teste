@@ -5,8 +5,12 @@ using UnityEngine;
 
 public class InventoryManager : MonoBehaviour, IInventoryManager
 {
-    [SerializeField] private List<PlayerInventory> playerInventoryList = new List<PlayerInventory>();
+    [SerializeField] private List<PlayerInventoryData> playerInventoryList = new List<PlayerInventoryData>();
     public event Action<FixedString64Bytes> OnInventoryChanged;
+
+    public bool IsInitialized { get; private set; }
+
+    public event Action OnInitialized;
 
     public static InventoryManager Instance { get; private set; }
 
@@ -15,17 +19,29 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         Instance = this;
     }
 
-    public void AddPlayer(FixedString64Bytes playerID)
+    public void FinishInitialization()
     {
-        if (GetPlayerUsingIDS(playerInventoryList, playerID) == null)
+        if (IsInitialized == true)
         {
-            playerInventoryList.Add(new PlayerInventory(playerID));
+            return;
+        }
+
+        IsInitialized = true;
+
+        OnInitialized?.Invoke();
+    }
+
+    public void ServerAddPlayer(FixedString64Bytes playerID)
+    {
+        if (GetPlayerInventoryUsingID(playerInventoryList, playerID) == null)
+        {
+            playerInventoryList.Add(new PlayerInventoryData(playerID));
         }
     }
 
-    public bool AddItemToPlayer(BaseItem baseItem, FixedString64Bytes playerID)
+    public bool ServerAddItem(BaseItem baseItem, FixedString64Bytes playerID)
     {
-        PlayerInventory playerInventory = GetPlayerUsingIDS(playerInventoryList, playerID);
+        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
 
         if (playerInventory == null)
         {
@@ -47,7 +63,7 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
 
     public void RemoveItemToPlayer(BaseItem baseItem, FixedString64Bytes playerID)
     {
-        PlayerInventory playerInventory = GetPlayerUsingIDS(playerInventoryList, playerID);
+        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
 
         if (playerInventory == null)
         {
@@ -67,14 +83,14 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
 
     public BaseItem GetPlayerItemBySlot(FixedString64Bytes playerID, int slotIndex)
     {
-        PlayerInventory playerInventory = GetPlayerUsingIDS(playerInventoryList, playerID);
+        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
 
-        return playerInventory.GetItemBySlot(slotIndex);
+        return playerInventory.GetWeaponBySlot(slotIndex);
     }
 
-    public static PlayerInventory GetPlayerUsingIDS(List<PlayerInventory> playerInventoryList, FixedString64Bytes playerID)
+    public static PlayerInventoryData GetPlayerInventoryUsingID(List<PlayerInventoryData> playerInventoryList, FixedString64Bytes playerID)
     {
-        foreach (PlayerInventory playerInventory in playerInventoryList)
+        foreach (PlayerInventoryData playerInventory in playerInventoryList)
         {
             if (playerID == playerInventory.AuthenticateID)
             {
@@ -83,50 +99,5 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         }
 
         return null;
-    }
-}
-
-[Serializable]
-public class PlayerInventory
-{
-    [SerializeField] private FixedString64Bytes authenticateID;
-    [SerializeField] private List<BaseItem> items = new List<BaseItem>();
-    [SerializeField] private List<WeaponItem> weapon = new List<WeaponItem>();
-
-    public FixedString64Bytes AuthenticateID => authenticateID;
-
-    public PlayerInventory(FixedString64Bytes authenticateID)
-    {
-        this.authenticateID = authenticateID;
-    }
-
-    public void AddItem(BaseItem baseItem)
-    {
-        items.Add(baseItem);
-    }
-
-    public void RemoveItem(BaseItem baseItem)
-    {
-        items.Remove(baseItem);
-    }
-
-    public void AddWeapon(WeaponItem weaponItem)
-    {
-        weapon.Add(weaponItem);
-    }
-
-    public void RemoveWeapon(WeaponItem weaponItem)
-    {
-        weapon.Remove(weaponItem);
-    }
-
-    public BaseItem GetItemBySlot(int slotIndex)
-    {
-        if (slotIndex < 0 || slotIndex >= weapon.Count)
-        {
-            return null;
-        }
-
-        return weapon[slotIndex];
     }
 }

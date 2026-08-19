@@ -5,11 +5,11 @@ using UnityEngine;
 public class PlayerInitializerNetwork : NetworkBehaviour
 {
     public static PlayerInitializerNetwork instance;
-    [SerializeField] private PlayerInitializer playerInitializer;
+    [SerializeField] private PlayerInitializerSingleplayer playerInitializerSingleplayer;
     [SerializeField] private PlayerSpawnerNetwork playerSpawnerNetwork;
-    [SerializeField] private InventoryManagerNetwork inventoryManagerNetwork;
+    [SerializeField] private NetworkInventoryManager networkInventoryManager;
 
-    [SerializeField] private PlayerInitializerUtils playerInitializerUtils;
+    [SerializeField] private PlayerInitializer playerInitializer;
 
     private bool isConnected = false;
 
@@ -27,8 +27,13 @@ public class PlayerInitializerNetwork : NetworkBehaviour
     {
         if (isConnected == false)
         {
-            playerInitializer.SpawnPlayer(0);
+            playerInitializerSingleplayer.SpawnPlayer(0);
         }
+    }
+
+    public void FinishInitialization()
+    {
+        InventoryManager.Instance.FinishInitialization();
     }
 
     public void SpawnPlayer(ulong clientID)
@@ -51,13 +56,15 @@ public class PlayerInitializerNetwork : NetworkBehaviour
             }
         }
 
-        playerInitializerUtils.SpawnPlayer(playerSpawnerNetwork, inventoryManagerNetwork, playerID, clientID);
+        NetworkInventoryManager.Instance.ServerAddPlayer(playerID);
+        IPlayerController playerController = playerInitializer.SpawnPlayer(playerSpawnerNetwork, playerID, clientID);
         InitializePlayerRPC(playerID, clientID);
+        playerInitializer.InitializePlayerInventory(networkInventoryManager, playerController, playerID);
     }
 
     [Rpc(SendTo.NotMe)]
     private void InitializePlayerRPC(FixedString64Bytes playerID, ulong clientID)
     {
-        playerInitializerUtils.SearchAndInitializePlayer(playerID, clientID);
+        playerInitializer.SearchAndInitializePlayer(playerID, clientID);
     }
 }
