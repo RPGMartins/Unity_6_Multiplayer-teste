@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class PlayerInitializer : MonoBehaviour
 {
-    private static string DEFAULT_PLAYER_ID = "DefaultPlayer";
+    public static string DEFAULT_PLAYER_ID = "DefaultPlayer";
     private static string DEFAULT_FlashLight_ID = "FlashLight";
     private static string DEFAULT_Pistol_ID = "Pistol";
 
     private List<IPlayerController> createdPlayers = new List<IPlayerController>();
 
-    public IPlayerController SpawnPlayer(IPlayerSpawner playerSpawner, FixedString64Bytes playerID, ulong clientID)
+    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, IPlayerSpawner playerSpawner, FixedString64Bytes playerID, ulong clientID)
     {
         if (playerID == string.Empty)
         {
@@ -19,12 +19,12 @@ public class PlayerInitializer : MonoBehaviour
 
         IPlayerController playerController = playerSpawner.SpawnPlayer(clientID);
         createdPlayers.Add(playerController);
-        InitializePlayer(playerController, playerID, clientID);
+        InitializePlayerInventory(inventoryManager, playerController, playerID);
 
         return playerController;
     }
 
-    public void InitializePlayerInventory(IInventoryManager inventoryManager, IPlayerController playerController, FixedString64Bytes playerID)
+    private void InitializePlayerInventory(IInventoryManager inventoryManager, IPlayerController playerController, FixedString64Bytes playerID)
     {
         inventoryManager.ServerAddPlayer(playerID);
         inventoryManager.OnInventoryChanged += (tempPlayerID) => InventoryChanged(playerController, tempPlayerID);
@@ -36,29 +36,11 @@ public class PlayerInitializer : MonoBehaviour
         inventoryManager.ServerAddItem(inventoryItemPistol, playerID);
     }
 
-    private void InitializePlayer(IPlayerController playerController, FixedString64Bytes playerID, ulong clientID)
-    {
-        playerController.Initialize(playerID, clientID);
-    }
-
     private void InventoryChanged(IPlayerController playerController, FixedString64Bytes playerID)
     {
         if (playerID == playerController.AuthenticateID)
         {
             playerController.PlayerLocalInventoryController.onLocalInventoryChanged?.Invoke();
-        }
-    }
-
-    public void SearchAndInitializePlayer(FixedString64Bytes playerID, ulong clientID)
-    {
-        foreach (IPlayerController playerController in createdPlayers)
-        {
-            if (playerController.AuthenticateID == playerID)
-            {
-                InitializePlayer(playerController, playerID, clientID);
-
-                break;
-            }
         }
     }
 }

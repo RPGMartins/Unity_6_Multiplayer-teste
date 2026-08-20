@@ -1,12 +1,11 @@
 using System;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 {
     public static NetworkInventoryManager Instance { get; private set; }
-
-    private bool localInventoryReady;
 
     private NetworkList<NetworkInventoryItem> networkItems;
     private NetworkList<FixedString64Bytes> networkPlayers;
@@ -26,14 +25,7 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
         networkPlayers.OnListChanged += OnNetworkPlayerListChanged;
         networkItems.OnListChanged += OnNetworkListChanged;
 
-        if (InventoryManager.Instance.IsInitialized)
-        {
-            StartLocalSynchronization();
-        }
-        else
-        {
-            InventoryManager.Instance.OnInitialized += OnInventoryManagerInitialized;
-        }
+        RebuildLocalInventory();
     }
 
     public override void OnNetworkDespawn()
@@ -54,11 +46,6 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 
     private void OnNetworkListChanged(NetworkListEvent<NetworkInventoryItem> change)
     {
-        if (localInventoryReady == false)
-        {
-            return;
-        }
-
         switch (change.Type)
         {
             case NetworkListEvent<NetworkInventoryItem>.EventType.Add:
@@ -71,23 +58,6 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 
                 break;
         }
-    }
-
-    private void OnInventoryManagerInitialized()
-    {
-        InventoryManager.Instance.OnInitialized -= OnInventoryManagerInitialized;
-        StartLocalSynchronization();
-    }
-
-    private void StartLocalSynchronization()
-    {
-        if (localInventoryReady == true)
-        {
-            return;
-        }
-
-        RebuildLocalInventory();
-        localInventoryReady = true;
     }
 
     public void ServerAddPlayer(FixedString64Bytes playerID)
@@ -119,6 +89,11 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 
         NetworkInventoryItem networkItem = new NetworkInventoryItem(playerID, baseItem.ItemID);
 
+        if (networkItems.Contains(networkItem) == true)
+        {
+            return false;
+        }
+
         networkItems.Add(networkItem);
 
         return true;
@@ -148,8 +123,10 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
         InventoryManager.Instance.RemoveItemToPlayer(baseItem, networkItem.PlayerID);
     }
 
-    private void RebuildLocalInventory()
+    public void RebuildLocalInventory()
     {
+        InventoryManager.Instance.ResetVariables();
+
         foreach (FixedString64Bytes playerID in networkPlayers)
         {
             InventoryManager.Instance.ServerAddPlayer(playerID);
@@ -158,6 +135,18 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
         foreach (NetworkInventoryItem networkItem in networkItems)
         {
             AddItemLocally(networkItem);
+        }
+    }
+
+    [SerializeField] private bool testeResetInventory;
+
+    private void Update()
+    {
+        if (testeResetInventory == true)
+        {
+            testeResetInventory = false;
+
+            RebuildLocalInventory();
         }
     }
 }

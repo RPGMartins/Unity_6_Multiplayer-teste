@@ -74,13 +74,7 @@ public class SceneControllerManager : NetworkBehaviour
         if (sceneName == gameplaySceneName)
         {
             lobbyStateCallback?.Invoke(LobbyStateEnum.OnGameplay);
-
-            foreach (ulong clientID in clientsCompleted)
-            {
-                PlayerInitializerNetwork.instance.SpawnPlayer(clientID);
-            }
-
-            PlayerInitializerNetwork.instance.FinishInitialization();
+            PlayerInitializerNetwork.instance.InitializePlayers(clientsCompleted);
         }
         else if (sceneName == mainMenuSceneName)
         {
@@ -88,14 +82,14 @@ public class SceneControllerManager : NetworkBehaviour
         }
     }
 
-    private void NetworkSceneManagerOnOnSynchronizeComplete(ulong clientid)
+    private void NetworkSceneManagerOnOnSynchronizeComplete(ulong clientid) //Quando cliente sincroniza com a sessao
     {
         if (SceneManager.GetActiveScene().name == mainMenuSceneName)
         {
         }
         else if (SceneManager.GetActiveScene().name == gameplaySceneName)
         {
-            PlayerInitializerNetwork.instance.SpawnPlayer(clientid);
+            PlayerInitializerNetwork.instance.InitializePlayers(new List<ulong>() { clientid });
         }
     }
 }

@@ -8,27 +8,11 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
     [SerializeField] private List<PlayerInventoryData> playerInventoryList = new List<PlayerInventoryData>();
     public event Action<FixedString64Bytes> OnInventoryChanged;
 
-    public bool IsInitialized { get; private set; }
-
-    public event Action OnInitialized;
-
     public static InventoryManager Instance { get; private set; }
 
     public void Awake()
     {
         Instance = this;
-    }
-
-    public void FinishInitialization()
-    {
-        if (IsInitialized == true)
-        {
-            return;
-        }
-
-        IsInitialized = true;
-
-        OnInitialized?.Invoke();
     }
 
     public void ServerAddPlayer(FixedString64Bytes playerID)
@@ -51,6 +35,13 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         switch (baseItem.ItemTypeEnum)
         {
             case ItemTypeEnum.Weapon:
+                WeaponItem weaponItem = baseItem as WeaponItem;
+
+                if (playerInventory.HasWeapon(weaponItem) == true)
+                {
+                    return false;
+                }
+
                 playerInventory.AddWeapon(baseItem as WeaponItem);
 
                 break;
@@ -79,6 +70,11 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         }
 
         OnInventoryChanged?.Invoke(playerID);
+    }
+
+    public void ResetVariables()
+    {
+        playerInventoryList.Clear();
     }
 
     public BaseItem GetPlayerItemBySlot(FixedString64Bytes playerID, int slotIndex)

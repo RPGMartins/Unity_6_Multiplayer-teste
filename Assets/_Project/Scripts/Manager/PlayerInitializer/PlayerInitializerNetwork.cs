@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -11,7 +13,8 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
     [SerializeField] private PlayerInitializer playerInitializer;
 
-    private bool isConnected = false;
+    private List<ulong> clientsInitialized = new List<ulong>();
+    private List<ulong> clientsToInitialize = new List<ulong>();
 
     private void Awake()
     {
@@ -19,28 +22,73 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
         if (NetworkConnectionChecker.CheckConnection() == true)
         {
-            isConnected = true;
+            return;
         }
-    }
 
-    private void Start()
-    {
-        if (isConnected == false)
+        if (clientsToInitialize.Count <= 0)
         {
             playerInitializerSingleplayer.SpawnPlayer(0);
         }
     }
 
-    public void FinishInitialization()
-    {
-        InventoryManager.Instance.FinishInitialization();
-    }
-
-    public void SpawnPlayer(ulong clientID)
+    private void Update()
     {
         if (IsServer == false)
         {
             return;
+        }
+
+        List<IPlayerController> playerControllers = new List<IPlayerController>();
+
+        for (int i = clientsToInitialize.Count - 1; i >= 0; i--)
+        {
+            IPlayerController playerController = SpawnPlayer(clientsToInitialize[i]);
+
+            if (playerController != null)
+            {
+                playerControllers.Add(playerController);
+                clientsInitialized.Add(clientsToInitialize[i]);
+                clientsToInitialize.RemoveAt(i);
+            }
+        }
+
+        if (playerControllers.Count > 0)
+        {
+            networkInventoryManager.RebuildLocalInventory();
+            StartCoroutine(RebuildPlayerInventory(playerControllers));
+        }
+    }
+
+    private IEnumerator RebuildPlayerInventory(List<IPlayerController> playerControllers)
+    {
+        yield return new WaitForSeconds(1f);
+
+        foreach (IPlayerController playerController in playerControllers)
+        {
+            InitializePlayerRPC();
+        }
+    }
+
+    public void InitializePlayers(List<ulong> clientsIDs)
+    {
+        List<ulong> tempClients = new List<ulong>();
+
+        foreach (ulong id in clientsIDs)
+        {
+            if (clientsInitialized.Contains(id) == false)
+            {
+                tempClients.Add(id);
+            }
+        }
+
+        clientsToInitialize.AddRange(tempClients);
+    }
+
+    private IPlayerController SpawnPlayer(ulong clientID)
+    {
+        if (IsServer == false)
+        {
+            return null;
         }
 
         LobbyManager lobbyManger = FindAnyObjectByType<LobbyManager>(); //TODO usar singleont
@@ -57,14 +105,13 @@ public class PlayerInitializerNetwork : NetworkBehaviour
         }
 
         NetworkInventoryManager.Instance.ServerAddPlayer(playerID);
-        IPlayerController playerController = playerInitializer.SpawnPlayer(playerSpawnerNetwork, playerID, clientID);
-        InitializePlayerRPC(playerID, clientID);
-        playerInitializer.InitializePlayerInventory(networkInventoryManager, playerController, playerID);
+
+        return playerInitializer.SpawnPlayer(networkInventoryManager, playerSpawnerNetwork, playerID, clientID);
     }
 
     [Rpc(SendTo.NotMe)]
-    private void InitializePlayerRPC(FixedString64Bytes playerID, ulong clientID)
+    private void InitializePlayerRPC()
     {
-        playerInitializer.SearchAndInitializePlayer(playerID, clientID);
+        networkInventoryManager.RebuildLocalInventory();
     }
 }

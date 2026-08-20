@@ -26,6 +26,11 @@ public class PlayerInventoryData
         weaponList.Remove(weaponItem);
     }
 
+    public bool HasWeapon(WeaponItem weaponItem)
+    {
+        return weaponList.Contains(weaponItem);
+    }
+
     public BaseItem GetWeaponBySlot(int slotIndex)
     {
         if (slotIndex < 0 || slotIndex >= weaponList.Count)

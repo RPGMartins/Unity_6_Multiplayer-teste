@@ -1,6 +1,4 @@
-using System;
 using Unity.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour, IPlayerController
@@ -19,19 +17,24 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void Awake()
     {
+        if (NetworkConnectionChecker.CheckConnection() == false)
+        {
+            Initialize(PlayerInitializer.DEFAULT_PLAYER_ID, 0);
+        }
+    }
+
+    public void Initialize(FixedString64Bytes playerId, ulong clientID)
+    {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
         playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition);
         playerAnimation.Initialize(playerLocalInventoryController);
-    }
 
-    public void Initialize(FixedString64Bytes authenticateID, ulong clientID)
-    {
-        AuthenticateID = authenticateID;
-        playerLocalInventoryController.Initialize(authenticateID);
-        playerInteract.Initialize(playerInput.Interacting, clientID, authenticateID);
+        playerLocalInventoryController.Initialize(playerId);
+        playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
     }
 
     public Transform Transform => transform;
     public FixedString64Bytes AuthenticateID { get; set; }
+    public ulong ClientID { get; set; }
 }
