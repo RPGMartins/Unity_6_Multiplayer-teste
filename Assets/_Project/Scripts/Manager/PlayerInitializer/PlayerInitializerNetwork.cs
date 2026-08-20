@@ -12,11 +12,11 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
     [SerializeField] private PlayerInitializer playerInitializer;
 
-    private List<ulong> clientsCreated = new List<ulong>();
-    private List<ulong> clientsToCreate = new List<ulong>();
+    private List<FixedString64Bytes> clientsCreated = new List<FixedString64Bytes>();
+    private List<FixedString64Bytes> clientsToCreate = new List<FixedString64Bytes>();
 
-    private List<ulong> clientsInventoryInitialized = new List<ulong>();
-    private List<ulong> clientsInventoryToInitialized = new List<ulong>();
+    private List<FixedString64Bytes> clientsInventoryInitialized = new List<FixedString64Bytes>();
+    private List<FixedString64Bytes> clientsInventoryToInitialized = new List<FixedString64Bytes>();
 
     private void Awake()
     {
@@ -52,20 +52,24 @@ public class PlayerInitializerNetwork : NetworkBehaviour
         for (int i = clientsToCreate.Count - 1; i >= 0; i--)
         {
             LobbyManager lobbyManger = FindAnyObjectByType<LobbyManager>(); //TODO usar singleont
-            FixedString64Bytes playerID = new FixedString64Bytes();
+            ulong clientID = 0;
 
-            foreach (PlayerData playerData in lobbyManger.GetLobbyPlayers())
+            List<PlayerData> lobbyPlayers = lobbyManger.GetLobbyPlayers();
+
+            foreach (PlayerData playerData in lobbyPlayers)
             {
-                if (playerData.ClientId == clientsToCreate[i])
+                if (playerData.AuthenticationID != clientsToCreate[i])
                 {
-                    playerID = playerData.AuthenticationID;
-
-                    break;
+                    continue;
                 }
+
+                clientID = playerData.ClientId;
+
+                break;
             }
 
-            SpawnPlayer(playerID, clientsToCreate[i]);
-            playerInitializer.InitializeDefaultInventoryToPlayer(networkInventoryManager, playerID);
+            SpawnPlayer(clientsToCreate[i], clientID);
+            playerInitializer.InitializeDefaultInventoryToPlayer(networkInventoryManager, clientsToCreate[i]);
 
             clientsCreated.Add(clientsToCreate[i]);
             clientsToCreate.RemoveAt(i);
@@ -74,17 +78,15 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
     public void InitializePlayers(List<ulong> clientsIDs)
     {
-        List<ulong> tempClients = new List<ulong>();
+        if (IsServer == false)
+        {
+            return;
+        }
 
         foreach (ulong id in clientsIDs)
         {
-            if (clientsCreated.Contains(id) == false)
-            {
-                tempClients.Add(id);
-            }
+            RequestClientAuthenticatePlayerIDRPC(RpcTarget.Single(id, RpcTargetUse.Temp));
         }
-
-        clientsToCreate.AddRange(tempClients);
     }
 
     private IPlayerController SpawnPlayer(FixedString64Bytes playerID, ulong clientID)
@@ -96,7 +98,7 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
         NetworkInventoryManager.Instance.ServerAddPlayer(playerID);
 
-        return playerInitializer.SpawnPlayer(networkInventoryManager, playerSpawnerNetwork, playerID, clientID);
+        return playerInitializer.SpawnPlayer(networkInventoryManager, playerSpawnerNetwork, clientID);
     }
 
     [Rpc(SendTo.NotMe)]
@@ -106,10 +108,21 @@ public class PlayerInitializerNetwork : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server)]
-    public void InitializeInventoryRPC(RpcParams rpcParams = default)
+    public void InitializeInventoryRPC(FixedString64Bytes playerID)
     {
-        ulong clientId = rpcParams.Receive.SenderClientId;
+        clientsInventoryToInitialized.Add(playerID);
+    }
 
-        clientsInventoryToInitialized.Add(clientId);
+    [Rpc(SendTo.SpecifiedInParams)]
+    private void RequestClientAuthenticatePlayerIDRPC(RpcParams rpcParams = default)
+    {
+        AuthenticationManager authenticationManager = FindAnyObjectByType<AuthenticationManager>(); //TODO usar singleton
+        ReceivePlayerIDRPC(authenticationManager.AuthenticationID);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void ReceivePlayerIDRPC(FixedString64Bytes playerID)
+    {
+        clientsToCreate.Add(playerID);
     }
 }

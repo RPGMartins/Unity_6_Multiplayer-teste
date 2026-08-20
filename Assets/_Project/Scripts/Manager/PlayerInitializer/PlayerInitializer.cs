@@ -10,18 +10,17 @@ public class PlayerInitializer : MonoBehaviour
 
     private List<IPlayerController> createdPlayers = new List<IPlayerController>();
 
-    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, IPlayerSpawner playerSpawner, FixedString64Bytes playerID, ulong clientID)
+    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, IPlayerSpawner playerSpawner, ulong clientID)
     {
         IPlayerController playerController = playerSpawner.SpawnPlayer(clientID);
         createdPlayers.Add(playerController);
-        InitializePlayerInventory(inventoryManager, playerController, playerID);
+        InitializePlayerInventory(inventoryManager, playerController);
 
         return playerController;
     }
 
-    private void InitializePlayerInventory(IInventoryManager inventoryManager, IPlayerController playerController, FixedString64Bytes playerID)
+    private void InitializePlayerInventory(IInventoryManager inventoryManager, IPlayerController playerController)
     {
-        inventoryManager.ServerAddPlayer(playerID);
         inventoryManager.OnInventoryChanged += (tempPlayerID) => InventoryChanged(playerController, tempPlayerID);
     }
 

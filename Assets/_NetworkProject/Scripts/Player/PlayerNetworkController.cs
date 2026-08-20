@@ -30,6 +30,6 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
             Destroy(playerController);
         }
 
-        PlayerInitializerNetwork.instance.InitializeInventoryRPC();
+        PlayerInitializerNetwork.instance.InitializeInventoryRPC(AuthenticateID);
     }
 }
