@@ -14,14 +14,10 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner == false)
-        {
-            return;
-        }
-
         AuthenticationManager authenticationManager = FindAnyObjectByType<AuthenticationManager>();
         AuthenticateID = authenticationManager.AuthenticationID;
         ClientID = OwnerClientId;
+        playerController.Initialize(AuthenticateID, ClientID);
 
         if (IsOwner == false)
         {
@@ -34,8 +30,6 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
             Destroy(playerController);
         }
 
-        playerController.Initialize(AuthenticateID, ClientID);
-
-        NetworkInventoryManager.Instance.RebuildLocalInventory();
+        PlayerInitializerNetwork.instance.InitializeInventoryRPC();
     }
 }

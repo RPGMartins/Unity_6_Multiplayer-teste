@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
@@ -13,8 +12,11 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
     [SerializeField] private PlayerInitializer playerInitializer;
 
-    private List<ulong> clientsInitialized = new List<ulong>();
-    private List<ulong> clientsToInitialize = new List<ulong>();
+    private List<ulong> clientsCreated = new List<ulong>();
+    private List<ulong> clientsToCreate = new List<ulong>();
+
+    private List<ulong> clientsInventoryInitialized = new List<ulong>();
+    private List<ulong> clientsInventoryToInitialized = new List<ulong>();
 
     private void Awake()
     {
@@ -25,7 +27,7 @@ public class PlayerInitializerNetwork : NetworkBehaviour
             return;
         }
 
-        if (clientsToInitialize.Count <= 0)
+        if (clientsToCreate.Count <= 0)
         {
             playerInitializerSingleplayer.SpawnPlayer(0);
         }
@@ -38,34 +40,35 @@ public class PlayerInitializerNetwork : NetworkBehaviour
             return;
         }
 
-        List<IPlayerController> playerControllers = new List<IPlayerController>();
-
-        for (int i = clientsToInitialize.Count - 1; i >= 0; i--)
-        {
-            IPlayerController playerController = SpawnPlayer(clientsToInitialize[i]);
-
-            if (playerController != null)
-            {
-                playerControllers.Add(playerController);
-                clientsInitialized.Add(clientsToInitialize[i]);
-                clientsToInitialize.RemoveAt(i);
-            }
-        }
-
-        if (playerControllers.Count > 0)
+        for (int i = clientsInventoryToInitialized.Count - 1; i >= 0; i--)
         {
             networkInventoryManager.RebuildLocalInventory();
-            StartCoroutine(RebuildPlayerInventory(playerControllers));
+            ClientRebuildLocalInventoryRPC();
+
+            clientsInventoryInitialized.Add(clientsInventoryToInitialized[i]);
+            clientsInventoryToInitialized.RemoveAt(i);
         }
-    }
 
-    private IEnumerator RebuildPlayerInventory(List<IPlayerController> playerControllers)
-    {
-        yield return new WaitForSeconds(1f);
-
-        foreach (IPlayerController playerController in playerControllers)
+        for (int i = clientsToCreate.Count - 1; i >= 0; i--)
         {
-            InitializePlayerRPC();
+            LobbyManager lobbyManger = FindAnyObjectByType<LobbyManager>(); //TODO usar singleont
+            FixedString64Bytes playerID = new FixedString64Bytes();
+
+            foreach (PlayerData playerData in lobbyManger.GetLobbyPlayers())
+            {
+                if (playerData.ClientId == clientsToCreate[i])
+                {
+                    playerID = playerData.AuthenticationID;
+
+                    break;
+                }
+            }
+
+            SpawnPlayer(playerID, clientsToCreate[i]);
+            playerInitializer.InitializeDefaultInventoryToPlayer(networkInventoryManager, playerID);
+
+            clientsCreated.Add(clientsToCreate[i]);
+            clientsToCreate.RemoveAt(i);
         }
     }
 
@@ -75,33 +78,20 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
         foreach (ulong id in clientsIDs)
         {
-            if (clientsInitialized.Contains(id) == false)
+            if (clientsCreated.Contains(id) == false)
             {
                 tempClients.Add(id);
             }
         }
 
-        clientsToInitialize.AddRange(tempClients);
+        clientsToCreate.AddRange(tempClients);
     }
 
-    private IPlayerController SpawnPlayer(ulong clientID)
+    private IPlayerController SpawnPlayer(FixedString64Bytes playerID, ulong clientID)
     {
         if (IsServer == false)
         {
             return null;
-        }
-
-        LobbyManager lobbyManger = FindAnyObjectByType<LobbyManager>(); //TODO usar singleont
-        FixedString64Bytes playerID = new FixedString64Bytes();
-
-        foreach (PlayerData playerData in lobbyManger.GetLobbyPlayers())
-        {
-            if (playerData.ClientId == clientID)
-            {
-                playerID = playerData.AuthenticationID;
-
-                break;
-            }
         }
 
         NetworkInventoryManager.Instance.ServerAddPlayer(playerID);
@@ -110,8 +100,16 @@ public class PlayerInitializerNetwork : NetworkBehaviour
     }
 
     [Rpc(SendTo.NotMe)]
-    private void InitializePlayerRPC()
+    private void ClientRebuildLocalInventoryRPC()
     {
         networkInventoryManager.RebuildLocalInventory();
+    }
+
+    [Rpc(SendTo.Server)]
+    public void InitializeInventoryRPC(RpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+
+        clientsInventoryToInitialized.Add(clientId);
     }
 }

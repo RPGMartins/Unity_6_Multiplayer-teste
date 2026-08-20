@@ -12,11 +12,6 @@ public class PlayerInitializer : MonoBehaviour
 
     public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, IPlayerSpawner playerSpawner, FixedString64Bytes playerID, ulong clientID)
     {
-        if (playerID == string.Empty)
-        {
-            playerID = DEFAULT_PLAYER_ID;
-        }
-
         IPlayerController playerController = playerSpawner.SpawnPlayer(clientID);
         createdPlayers.Add(playerController);
         InitializePlayerInventory(inventoryManager, playerController, playerID);
@@ -28,7 +23,10 @@ public class PlayerInitializer : MonoBehaviour
     {
         inventoryManager.ServerAddPlayer(playerID);
         inventoryManager.OnInventoryChanged += (tempPlayerID) => InventoryChanged(playerController, tempPlayerID);
+    }
 
+    public void InitializeDefaultInventoryToPlayer(IInventoryManager inventoryManager, FixedString64Bytes playerID)
+    {
         WeaponItem inventoryItemFlashlight = ItemDataList.Instance.GetItemById(DEFAULT_FlashLight_ID) as WeaponItem;
         WeaponItem inventoryItemPistol = ItemDataList.Instance.GetItemById(DEFAULT_Pistol_ID) as WeaponItem;
 

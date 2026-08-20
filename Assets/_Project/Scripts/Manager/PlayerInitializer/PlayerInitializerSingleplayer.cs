@@ -8,6 +8,7 @@ public class PlayerInitializerSingleplayer : MonoBehaviour
 
     public void SpawnPlayer(ulong clientID)
     {
-        IPlayerController playerController = playerInitializer.SpawnPlayer(inventoryManager, playerSpawner, string.Empty, clientID);
+        IPlayerController playerController = playerInitializer.SpawnPlayer(inventoryManager, playerSpawner, PlayerInitializer.DEFAULT_PLAYER_ID, clientID);
+        playerInitializer.InitializeDefaultInventoryToPlayer(inventoryManager, PlayerInitializer.DEFAULT_PLAYER_ID);
     }
 }
