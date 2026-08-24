@@ -2,7 +2,8 @@
 using Unity.Collections;
 using Unity.Netcode;
 
-public struct NetworkInventoryItem : INetworkSerializable, IEquatable<NetworkInventoryItem>
+[Serializable]
+public struct InventoryData : INetworkSerializable, IEquatable<InventoryData>
 {
     private FixedString64Bytes playerID;
     private FixedString64Bytes itemID;
@@ -10,7 +11,7 @@ public struct NetworkInventoryItem : INetworkSerializable, IEquatable<NetworkInv
     public FixedString64Bytes PlayerID => playerID;
     public FixedString64Bytes ItemID => itemID;
 
-    public NetworkInventoryItem(FixedString64Bytes playerID, FixedString64Bytes itemID)
+    public InventoryData(FixedString64Bytes playerID, FixedString64Bytes itemID)
     {
         this.playerID = playerID;
         this.itemID = itemID;
@@ -22,7 +23,7 @@ public struct NetworkInventoryItem : INetworkSerializable, IEquatable<NetworkInv
         serializer.SerializeValue(ref itemID);
     }
 
-    public bool Equals(NetworkInventoryItem other)
+    public bool Equals(InventoryData other)
     {
         return playerID.Equals(other.playerID) && itemID.Equals(other.itemID);
     }

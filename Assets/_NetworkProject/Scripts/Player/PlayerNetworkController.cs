@@ -18,18 +18,7 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
         AuthenticateID = authenticationManager.AuthenticationID;
         ClientID = OwnerClientId;
         playerController.Initialize(AuthenticateID, ClientID);
-
-        if (IsOwner == false)
-        {
-            Destroy(this);
-            Destroy(playerController.PlayerMovement.Target.gameObject);
-            Destroy(playerController.PlayerMovement);
-            Destroy(playerController.PlayerLocalInventoryController);
-            Destroy(playerController.PlayerAnimation);
-            Destroy(playerController.PlayerInput);
-            Destroy(playerController);
-        }
-
+        playerController.gameObject.SetActive(IsOwner);
         PlayerInitializerNetwork.instance.InitializeInventoryRPC(AuthenticateID);
     }
 }

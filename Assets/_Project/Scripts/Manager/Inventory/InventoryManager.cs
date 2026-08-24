@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class InventoryManager : MonoBehaviour, IInventoryManager
 {
-    [SerializeField] private List<PlayerInventoryData> playerInventoryList = new List<PlayerInventoryData>();
+    [SerializeField] private List<InventoryData> playerInventoryList = new List<InventoryData>();
     public event Action<FixedString64Bytes> OnInventoryChanged;
 
     public static InventoryManager Instance { get; private set; }
@@ -15,38 +15,14 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         Instance = this;
     }
 
-    public void ServerAddPlayer(FixedString64Bytes playerID)
-    {
-        if (GetPlayerInventoryUsingID(playerInventoryList, playerID) == null)
-        {
-            playerInventoryList.Add(new PlayerInventoryData(playerID));
-        }
-    }
-
     public bool ServerAddItem(BaseItem baseItem, FixedString64Bytes playerID)
     {
-        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
-
-        if (playerInventory == null)
+        if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)
         {
             return false;
         }
 
-        switch (baseItem.ItemTypeEnum)
-        {
-            case ItemTypeEnum.Weapon:
-                WeaponItem weaponItem = baseItem as WeaponItem;
-
-                if (playerInventory.HasWeapon(weaponItem) == true)
-                {
-                    return false;
-                }
-
-                playerInventory.AddWeapon(baseItem as WeaponItem);
-
-                break;
-        }
-
+        playerInventoryList.Add(new InventoryData(playerID, baseItem.ItemID));
         OnInventoryChanged?.Invoke(playerID);
 
         return true;
@@ -54,21 +30,12 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
 
     public void RemoveItemToPlayer(BaseItem baseItem, FixedString64Bytes playerID)
     {
-        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
-
-        if (playerInventory == null)
+        if (PlayerHasItem(playerID, baseItem.ItemID, out InventoryData inventoryData) == false)
         {
             return;
         }
 
-        switch (baseItem.ItemTypeEnum)
-        {
-            case ItemTypeEnum.Weapon:
-                playerInventory.AddWeapon(baseItem as WeaponItem);
-
-                break;
-        }
-
+        playerInventoryList.Remove(inventoryData);
         OnInventoryChanged?.Invoke(playerID);
     }
 
@@ -79,21 +46,49 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
 
     public BaseItem GetPlayerItemBySlot(FixedString64Bytes playerID, int slotIndex)
     {
-        PlayerInventoryData playerInventory = GetPlayerInventoryUsingID(playerInventoryList, playerID);
+        string itemID = "";
 
-        return playerInventory.GetWeaponBySlot(slotIndex);
+        switch (slotIndex)
+        {
+            case 0:
+                itemID = "FlashLight";
+
+                break;
+
+            case 1:
+
+                itemID = "Pistol";
+
+                break;
+
+            case 2:
+                itemID = "Rifle";
+
+                break;
+        }
+
+        if (PlayerHasItem(playerID, itemID, out _) == false)
+        {
+            return null;
+        }
+
+        return ItemDataList.Instance.GetItemById(itemID);
     }
 
-    public static PlayerInventoryData GetPlayerInventoryUsingID(List<PlayerInventoryData> playerInventoryList, FixedString64Bytes playerID)
+    private bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData playerInventory)
     {
-        foreach (PlayerInventoryData playerInventory in playerInventoryList)
+        playerInventory = default;
+
+        foreach (InventoryData inventoryData in playerInventoryList)
         {
-            if (playerID == playerInventory.AuthenticateID)
+            if (playerID == inventoryData.PlayerID && itemID == inventoryData.ItemID)
             {
-                return playerInventory;
+                playerInventory = inventoryData;
+
+                return true;
             }
         }
 
-        return null;
+        return false;
     }
 }

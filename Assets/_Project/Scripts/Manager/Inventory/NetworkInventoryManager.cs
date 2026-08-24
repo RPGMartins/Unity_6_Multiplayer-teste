@@ -7,7 +7,7 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 {
     public static NetworkInventoryManager Instance { get; private set; }
 
-    private NetworkList<NetworkInventoryItem> networkItems;
+    private NetworkList<InventoryData> networkItems;
     private NetworkList<FixedString64Bytes> networkPlayers;
 
     public event Action<FixedString64Bytes> OnInventoryChanged;
@@ -16,13 +16,12 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
     {
         Instance = this;
 
-        networkItems = new NetworkList<NetworkInventoryItem>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        networkItems = new NetworkList<InventoryData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
         networkPlayers = new NetworkList<FixedString64Bytes>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     }
 
     public override void OnNetworkSpawn()
     {
-        networkPlayers.OnListChanged += OnNetworkPlayerListChanged;
         networkItems.OnListChanged += OnNetworkListChanged;
 
         RebuildLocalInventory();
@@ -33,27 +32,16 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
         networkItems.OnListChanged -= OnNetworkListChanged;
     }
 
-    private void OnNetworkPlayerListChanged(NetworkListEvent<FixedString64Bytes> change)
+    private void OnNetworkListChanged(NetworkListEvent<InventoryData> change)
     {
         switch (change.Type)
         {
-            case NetworkListEvent<FixedString64Bytes>.EventType.Add:
-                InventoryManager.Instance.ServerAddPlayer(change.Value);
-
-                break;
-        }
-    }
-
-    private void OnNetworkListChanged(NetworkListEvent<NetworkInventoryItem> change)
-    {
-        switch (change.Type)
-        {
-            case NetworkListEvent<NetworkInventoryItem>.EventType.Add:
+            case NetworkListEvent<InventoryData>.EventType.Add:
                 AddItemLocally(change.Value);
 
                 break;
 
-            case NetworkListEvent<NetworkInventoryItem>.EventType.Remove:
+            case NetworkListEvent<InventoryData>.EventType.Remove:
                 RemoveItemLocally(change.Value);
 
                 break;
@@ -87,52 +75,47 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
             return false;
         }
 
-        NetworkInventoryItem networkItem = new NetworkInventoryItem(playerID, baseItem.ItemID);
+        InventoryData data = new InventoryData(playerID, baseItem.ItemID);
 
-        if (networkItems.Contains(networkItem) == true)
+        if (networkItems.Contains(data) == true)
         {
             return false;
         }
 
-        networkItems.Add(networkItem);
+        networkItems.Add(data);
 
         return true;
     }
 
-    private void AddItemLocally(NetworkInventoryItem networkItem)
+    private void AddItemLocally(InventoryData data)
     {
-        BaseItem baseItem = ItemDataList.Instance.GetItemById(networkItem.ItemID);
+        BaseItem baseItem = ItemDataList.Instance.GetItemById(data.ItemID);
 
         if (baseItem == null)
         {
             return;
         }
 
-        InventoryManager.Instance.ServerAddItem(baseItem, networkItem.PlayerID);
+        InventoryManager.Instance.ServerAddItem(baseItem, data.PlayerID);
     }
 
-    private void RemoveItemLocally(NetworkInventoryItem networkItem)
+    private void RemoveItemLocally(InventoryData data)
     {
-        BaseItem baseItem = ItemDataList.Instance.GetItemById(networkItem.ItemID);
+        BaseItem baseItem = ItemDataList.Instance.GetItemById(data.ItemID);
 
         if (baseItem == null)
         {
             return;
         }
 
-        InventoryManager.Instance.RemoveItemToPlayer(baseItem, networkItem.PlayerID);
+        InventoryManager.Instance.RemoveItemToPlayer(baseItem, data.PlayerID);
     }
 
     public void RebuildLocalInventory()
     {
         InventoryManager.Instance.ResetVariables();
 
-        foreach (FixedString64Bytes playerID in networkPlayers)
-        {
-            InventoryManager.Instance.ServerAddPlayer(playerID);
-        }
-
-        foreach (NetworkInventoryItem networkItem in networkItems)
+        foreach (InventoryData networkItem in networkItems)
         {
             AddItemLocally(networkItem);
         }

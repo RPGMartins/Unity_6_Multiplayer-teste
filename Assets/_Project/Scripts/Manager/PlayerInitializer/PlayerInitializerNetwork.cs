@@ -85,7 +85,7 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
         foreach (ulong id in clientsIDs)
         {
-            RequestClientAuthenticatePlayerIDRPC(RpcTarget.Single(id, RpcTargetUse.Temp));
+            RequestClientAuthenticatePlayerIdRPC(RpcTarget.Single(id, RpcTargetUse.Temp));
         }
     }
 
@@ -114,14 +114,14 @@ public class PlayerInitializerNetwork : NetworkBehaviour
     }
 
     [Rpc(SendTo.SpecifiedInParams)]
-    private void RequestClientAuthenticatePlayerIDRPC(RpcParams rpcParams = default)
+    private void RequestClientAuthenticatePlayerIdRPC(RpcParams rpcParams = default)
     {
         AuthenticationManager authenticationManager = FindAnyObjectByType<AuthenticationManager>(); //TODO usar singleton
-        ReceivePlayerIDRPC(authenticationManager.AuthenticationID);
+        ReceivePlayerIdRPC(authenticationManager.AuthenticationID);
     }
 
     [Rpc(SendTo.Server)]
-    private void ReceivePlayerIDRPC(FixedString64Bytes playerID)
+    private void ReceivePlayerIdRPC(FixedString64Bytes playerID)
     {
         clientsToCreate.Add(playerID);
     }

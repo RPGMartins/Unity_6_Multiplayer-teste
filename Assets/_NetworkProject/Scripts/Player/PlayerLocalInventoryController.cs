@@ -9,9 +9,9 @@ public class PlayerLocalInventoryController : MonoBehaviour
 
     private FixedString64Bytes authenticateID;
 
-    public void Initialize(FixedString64Bytes authenticatrID)
+    public void Initialize(FixedString64Bytes authenticateID)
     {
-        this.authenticateID = authenticatrID;
+        this.authenticateID = authenticateID;
     }
 
     public void EquipSlotWeapon(int slot)
