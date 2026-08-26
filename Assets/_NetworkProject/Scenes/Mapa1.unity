@@ -877,6 +877,53 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bf7c4ca4ec97e9408bc2e07831a29e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInitializerUtils
+--- !u!1 &1811930585
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1811930587}
+  - component: {fileID: 1811930586}
+  m_Layer: 0
+  m_Name: TargetInititalizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1811930586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811930585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0fe2e464a0c7a4f4b8ba0fc20b2909c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TargetInititlaizer
+  targetPrefab: {fileID: 369130606313266596, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
+  defaultLifeValue: 3
+  spawnTarget: 0
+--- !u!4 &1811930587
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1811930585}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1846688286
 GameObject:
   m_ObjectHideFlags: 0
@@ -1182,3 +1229,4 @@ SceneRoots:
   - {fileID: 1046276666}
   - {fileID: 577750414}
   - {fileID: 1704131313}
+  - {fileID: 1811930587}

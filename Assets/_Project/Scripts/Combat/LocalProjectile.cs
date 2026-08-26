@@ -4,6 +4,7 @@ using UnityEngine;
 public class LocalProjectile : MonoBehaviour
 {
     [SerializeField] private Transform projectileTransformHolder;
+    [SerializeField] private ProjectileCollision projectileCollision;
     private Vector3 direction;
     private float velocity;
 
@@ -12,13 +13,23 @@ public class LocalProjectile : MonoBehaviour
 
     public Transform ProjectileTransformHolder => projectileTransformHolder;
 
-    public void Initialize(Vector3 originalPosition, Vector3 direction, float velocity)
+    public void InitializeServer(Vector3 originalPositionValue, Vector3 directionValue, float velocityValue)
+    {
+        Initialize(originalPositionValue, directionValue, velocityValue, null);
+    }
+
+    public void Initialize(Vector3 originalPosition, Vector3 direction, float velocity, Action<LocalProjectile> onProjectileExpired)
     {
         projectileTransformHolder.transform.position = originalPosition;
-        this.direction = direction;
+        this.direction = direction.normalized;
         this.velocity = velocity;
         this.initialized = true;
         this.originPosition = originalPosition;
+
+        if (onProjectileExpired != null)
+        {
+            projectileCollision.Initilaize(() => onProjectileExpired(this));
+        }
     }
 
     private void Update()

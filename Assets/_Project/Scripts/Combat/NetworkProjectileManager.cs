@@ -4,11 +4,23 @@ using UnityEngine;
 
 public class NetworkProjectileManager : NetworkBehaviour
 {
+    private ProjectilePrefabInstanceHandler projectilePrefabInstanceHandler;
     public static NetworkProjectileManager Instance { get; private set; }
 
     private void Awake()
     {
         Instance = this;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        projectilePrefabInstanceHandler = new ProjectilePrefabInstanceHandler();
+        NetworkManager.PrefabHandler.AddHandler(ProjectileManager.Instance.ProjectilePrefab, projectilePrefabInstanceHandler);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.PrefabHandler.RemoveHandler(ProjectileManager.Instance.ProjectilePrefab);
     }
 
     public void Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
@@ -25,7 +37,7 @@ public class NetworkProjectileManager : NetworkBehaviour
 
     private void ShootServer(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        LocalProjectile projectile = ProjectileManager.Instance.Shoot(originPosition, targetPosition, rotation, weaponID, false);
+        LocalProjectile projectile = ProjectileManager.Instance.Shoot(originPosition, targetPosition, rotation, weaponID);
         NetworkObject networkObject = projectile.GetComponentInParent<NetworkObject>();
         networkObject.Spawn();
         networkObject.GetComponent<NetworkProjectile>().InitializeServer(originPosition, targetPosition - originPosition, 5);

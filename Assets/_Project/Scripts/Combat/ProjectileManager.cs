@@ -17,6 +17,8 @@ public class ProjectileManager : MonoBehaviour
 
     public event Action<LocalProjectile> OnProjectileExpired;
 
+    public GameObject ProjectilePrefab => projectilePrefab;
+
     private void Awake()
     {
         Instance = this;
@@ -43,18 +45,18 @@ public class ProjectileManager : MonoBehaviour
         projectilePool.Dispose();
     }
 
-    public LocalProjectile Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID, bool initialize = true)
+    public LocalProjectile Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        LocalProjectile localProjectile = projectilePool.Get();
-
-        if (initialize == true)
-        {
-            localProjectile.Initialize(originPosition, targetPosition - originPosition, 5);
-        }
-
+        LocalProjectile localProjectile = GetProjectileFromPool();
+        localProjectile.Initialize(originPosition, targetPosition - originPosition, 5, OnProjectileExpired);
         currentProjectiles.Add(localProjectile);
 
         return localProjectile;
+    }
+
+    public LocalProjectile GetProjectileFromPool()
+    {
+        return projectilePool.Get();
     }
 
     public void ReturnProjectile(LocalProjectile projectile)
