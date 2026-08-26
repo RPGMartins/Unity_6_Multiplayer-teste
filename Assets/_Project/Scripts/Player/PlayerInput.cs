@@ -8,6 +8,7 @@ public class PlayerInput : MonoBehaviour
     private int currentSlotPressed = -1;
     private Vector2 currentMousePosition;
     private bool interacting;
+    private bool shooting;
     public event Action<int> onSlotPressed;
 
     private Camera cam;
@@ -22,6 +23,9 @@ public class PlayerInput : MonoBehaviour
 
     private void Update()
     {
+        interacting = false;
+        shooting = false;
+
         #region Movement
 
         movement = Vector2.zero;
@@ -96,11 +100,18 @@ public class PlayerInput : MonoBehaviour
 
         #region Interacting
 
-        interacting = false;
-
         if (Keyboard.current.eKey.isPressed == true)
         {
             interacting = true;
+        }
+
+        #endregion
+
+        #region Shooting
+
+        if (Keyboard.current.spaceKey.wasPressedThisFrame == true)
+        {
+            shooting = true;
         }
 
         #endregion
@@ -119,5 +130,10 @@ public class PlayerInput : MonoBehaviour
     public bool Interacting()
     {
         return interacting;
+    }
+
+    public bool Shooting()
+    {
+        return shooting;
     }
 }

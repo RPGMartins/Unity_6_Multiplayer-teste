@@ -9,15 +9,17 @@ public class PlayerMovement : MonoBehaviour
 
     private Func<Vector2> movementAction;
     private Func<Vector3> mouseMovementAction;
+    private Func<bool> shootingAction;
 
     private bool initialized = false;
 
     public Transform Target => target;
 
-    public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector)
+    public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector, Func<bool> shooting)
     {
         this.movementAction = movementVector;
         this.mouseMovementAction = mouseMovementVector;
+        this.shootingAction = shooting;
         initialized = true;
     }
 
@@ -31,6 +33,12 @@ public class PlayerMovement : MonoBehaviour
         Vector3 movement = movementAction.Invoke();
         transformToMove.position += movement * (velocity * Time.deltaTime);
         target.position = mouseMovementAction.Invoke();
+
+        if (shootingAction.Invoke() == true)
+        {
+            WeaponManager.Instance.Shoot(transformToMove.position, target.position);
+        }
+
         RotateTowardsTarget();
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
@@ -21,7 +22,10 @@ public class PlayerInitializerNetwork : NetworkBehaviour
     private void Awake()
     {
         instance = this;
+    }
 
+    private void Start()
+    {
         if (NetworkConnectionChecker.CheckConnection() == true)
         {
             return;

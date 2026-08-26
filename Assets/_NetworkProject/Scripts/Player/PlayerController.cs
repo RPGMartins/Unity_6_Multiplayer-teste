@@ -23,15 +23,26 @@ public class PlayerController : MonoBehaviour, IPlayerController
         }
     }
 
-    public void Initialize(FixedString64Bytes playerId, ulong clientID)
+    public void Initialize(FixedString64Bytes playerId, ulong clientID, bool enableScripts = true)
     {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
-        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition);
+        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerInput.Shooting);
         playerAnimation.Initialize(playerLocalInventoryController);
 
         playerLocalInventoryController.Initialize(playerId);
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
+
+        DisableOtherPlayersScripts(enableScripts);
+    }
+
+    private void DisableOtherPlayersScripts(bool enable)
+    {
+        PlayerAnimation.enabled = enable;
+        playerInput.enabled = enable;
+        playerInteract.enabled = enable;
+        playerLocalInventoryController.enabled = enable;
+        playerMovement.enabled = enable;
     }
 
     public Transform Transform => transform;

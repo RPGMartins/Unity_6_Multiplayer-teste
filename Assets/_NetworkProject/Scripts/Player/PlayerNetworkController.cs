@@ -17,8 +17,7 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
         AuthenticationManager authenticationManager = FindAnyObjectByType<AuthenticationManager>();
         AuthenticateID = authenticationManager.AuthenticationID;
         ClientID = OwnerClientId;
-        playerController.Initialize(AuthenticateID, ClientID);
-        playerController.gameObject.SetActive(IsOwner);
+        playerController.Initialize(AuthenticateID, ClientID, IsOwner);
         PlayerInitializerNetwork.instance.InitializeInventoryRPC(AuthenticateID);
     }
 }
