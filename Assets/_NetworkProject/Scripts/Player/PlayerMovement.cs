@@ -48,4 +48,9 @@ public class PlayerMovement : MonoBehaviour
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transformToMove.rotation = Quaternion.Euler(0, 0, angle);
     }
+
+    public void EnableDisableAim(bool value)
+    {
+        target.gameObject.SetActive(value);
+    }
 }

@@ -38,6 +38,8 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
     private void DisableOtherPlayersScripts(bool enable)
     {
+        PlayerMovement.EnableDisableAim(enable);
+
         PlayerAnimation.enabled = enable;
         playerInput.enabled = enable;
         playerInteract.enabled = enable;

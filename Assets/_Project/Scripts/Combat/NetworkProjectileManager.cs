@@ -15,6 +15,8 @@ public class NetworkProjectileManager : NetworkBehaviour
     {
         if (IsServer == false)
         {
+            ShootRPC(originPosition, targetPosition, rotation, weaponID);
+
             return;
         }
 
@@ -44,5 +46,11 @@ public class NetworkProjectileManager : NetworkBehaviour
         }
 
         ProjectileManager.Instance.ReturnProjectile(projectile);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void ShootRPC(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    {
+        ShootServer(originPosition, targetPosition, rotation, weaponID);
     }
 }
