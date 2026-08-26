@@ -27,8 +27,8 @@ public class NetworkProjectileManager : NetworkBehaviour
     {
         LocalProjectile projectile = ProjectileManager.Instance.Shoot(originPosition, targetPosition, rotation, weaponID, false);
         NetworkObject networkObject = projectile.GetComponentInParent<NetworkObject>();
-        networkObject.GetComponent<NetworkProjectile>().Initialize(originPosition, targetPosition - originPosition, 5);
         networkObject.Spawn();
+        networkObject.GetComponent<NetworkProjectile>().InitializeServer(originPosition, targetPosition - originPosition, 5);
     }
 
     public void ReturnProjectile(LocalProjectile projectile)
