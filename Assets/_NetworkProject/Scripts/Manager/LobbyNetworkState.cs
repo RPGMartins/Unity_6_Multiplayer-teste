@@ -150,6 +150,15 @@ public class LobbyNetworkState : NetworkBehaviour
 
     public PlayerData GetPlayerDataByClientID(ulong clientID)
     {
+        int index = GetPlayerIndexByClientID(clientID);
+
+        if (index < 0)
+        {
+            Debug.LogError("Invalid client ID");
+
+            return default;
+        }
+
         return playersState[GetPlayerIndexByClientID(clientID)];
     }
 

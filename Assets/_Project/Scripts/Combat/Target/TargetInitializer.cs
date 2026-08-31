@@ -28,16 +28,23 @@ public class TargetInitializer : MonoBehaviour
     {
         GameObject targetInstance = Instantiate(targetPrefab);
 
+        Action destroyAction = () => Destroy(targetInstance);
+
         if (hasConnection == true)
         {
+            if (NetworkManager.Singleton.IsServer == false)
+            {
+                return;
+            }
+
             NetworkTarget networkTarget = targetInstance.GetComponent<NetworkTarget>();
-            networkTarget.Initialize(defaultLifeValue);
+            networkTarget.Initialize(defaultLifeValue, destroyAction);
             networkTarget.GetComponent<NetworkObject>().Spawn();
         }
         else
         {
             LocalTarget localTarget = targetInstance.GetComponentInChildren<LocalTarget>();
-            localTarget.Initialize(defaultLifeValue);
+            localTarget.Initialize(defaultLifeValue, destroyAction);
         }
     }
 }

@@ -3,11 +3,13 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour, IPlayerController
 {
+    [SerializeField] private Transform playerTransform;
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private PlayerLocalInventoryController playerLocalInventoryController;
     [SerializeField] private PlayerAnimation playerAnimation;
     [SerializeField] private PlayerInput playerInput;
     [SerializeField] private PlayerInteract playerInteract;
+    [SerializeField] private PlayerHitbox playerHitbox;
 
     public PlayerMovement PlayerMovement => playerMovement;
     public PlayerLocalInventoryController PlayerLocalInventoryController => playerLocalInventoryController;
@@ -29,9 +31,9 @@ public class PlayerController : MonoBehaviour, IPlayerController
 
         playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerInput.Shooting);
         playerAnimation.Initialize(playerLocalInventoryController);
-
         playerLocalInventoryController.Initialize(playerId);
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
+        playerHitbox.Initilize(playerTransform);
 
         DisableOtherPlayersScripts(enableScripts);
     }

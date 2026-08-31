@@ -36,7 +36,7 @@ public class ProjectileManager : MonoBehaviour
                 continue;
             }
 
-            OnProjectileExpired?.Invoke(localProjectile);
+            IvokeOnProjectileExpired(localProjectile);
         }
     }
 
@@ -48,7 +48,7 @@ public class ProjectileManager : MonoBehaviour
     public LocalProjectile Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
         LocalProjectile localProjectile = GetProjectileFromPool();
-        localProjectile.Initialize(originPosition, targetPosition - originPosition, 5, OnProjectileExpired);
+        localProjectile.Initialize(originPosition, targetPosition - originPosition, 5);
         currentProjectiles.Add(localProjectile);
 
         return localProjectile;
@@ -88,5 +88,10 @@ public class ProjectileManager : MonoBehaviour
     private void ActionOnDestroy(LocalProjectile localProjectile)
     {
         Destroy(localProjectile.ProjectileTransformHolder);
+    }
+
+    public void IvokeOnProjectileExpired(LocalProjectile localProjectile)
+    {
+        OnProjectileExpired?.Invoke(localProjectile);
     }
 }

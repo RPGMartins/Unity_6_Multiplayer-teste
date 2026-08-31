@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class LocalTarget : MonoBehaviour
@@ -5,18 +6,21 @@ public class LocalTarget : MonoBehaviour
     [SerializeField] private Transform targetTransform;
     [SerializeField] private int life;
 
-    public void Initialize(int life)
+    private Action actionToDestroy;
+
+    public void Initialize(int life, Action actionToDestroy)
     {
         this.life = life;
+        this.actionToDestroy = actionToDestroy;
     }
 
     public void Hit(int damage)
     {
-        life -= damage;
+        TakeDamage(damage);
 
         if (life <= 0)
         {
-            Destroy(targetTransform.gameObject);
+            DestroyEffect();
         }
     }
 
@@ -25,5 +29,11 @@ public class LocalTarget : MonoBehaviour
         life -= damage;
 
         //Efeitos de hit
+    }
+
+    public void DestroyEffect()
+    {
+        //Efeitos de destruição, talvez esperar algo
+        actionToDestroy.Invoke();
     }
 }

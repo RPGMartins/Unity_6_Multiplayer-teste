@@ -8,6 +8,8 @@ public class NetworkTarget : NetworkBehaviour
 
     private NetworkVariable<int> life = new NetworkVariable<int>();
 
+    private int tempLife = 0;
+
     public override void OnNetworkSpawn()
     {
         if (IsServer == false)
@@ -16,6 +18,7 @@ public class NetworkTarget : NetworkBehaviour
         }
 
         life.OnValueChanged += OnLifeValueChanged;
+        life.Value = tempLife;
     }
 
     public override void OnNetworkDespawn()
@@ -28,10 +31,10 @@ public class NetworkTarget : NetworkBehaviour
         life.OnValueChanged -= OnLifeValueChanged;
     }
 
-    public void Initialize(int life)
+    public void Initialize(int life, Action actionOnToDestroy)
     {
-        this.life.Value = life;
-        localTarget.Initialize(life);
+        tempLife = life;
+        localTarget.Initialize(life, actionOnToDestroy);
     }
 
     public void TakeDamage(int damage)
@@ -61,6 +64,7 @@ public class NetworkTarget : NetworkBehaviour
             }
             else
             {
+                localTarget.DestroyEffect();
             }
         }
     }

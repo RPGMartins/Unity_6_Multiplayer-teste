@@ -49,6 +49,6 @@ public class NetworkProjectile : NetworkBehaviour
 
     private void TryInitialize()
     {
-        localProjectile.InitializeServer(originalPosition.Value, direction.Value, velocity.Value);
+        localProjectile.Initialize(originalPosition.Value, direction.Value, velocity.Value);
     }
 }
