@@ -4,24 +4,27 @@ using UnityEngine;
 
 public class EnemyInitializer : MonoBehaviour
 {
-    public void SpawnEnemy(GameObject enemyPrefab)
+    public void SpawnEnemyNetwork(GameObject enemyPrefab, Vector3 position, int life)
     {
-    }
+        GameObject enemyGameObjectInstance = SpawnBase(enemyPrefab, position, out Action destroyAction);
 
-    private void SpawnEnemyNetwork(GameObject enemyPrefab, int life)
-    {
-        GameObject enemyGameObjectInstance = Instantiate(enemyPrefab);
-        Action destroyAction = () => Destroy(enemyGameObjectInstance);
         NetworkEnemyController networkEnemyController = enemyGameObjectInstance.GetComponent<NetworkEnemyController>();
+        networkEnemyController.Initialize(life, destroyAction);
         NetworkObject networkObject = networkEnemyController.GetComponent<NetworkObject>();
-        networkEnemyController.Initialize(3, destroyAction);
         networkObject.Spawn();
     }
 
-    private void SpawnEnemyLocal(GameObject enemyPrefab, int life)
+    public void SpawnEnemyLocal(GameObject enemyPrefab, Vector3 position, int life)
     {
-        GameObject enemyGameObjectInstance = Instantiate(enemyPrefab);
-        Action destroyAction = () => Destroy(enemyGameObjectInstance);
-        enemyGameObjectInstance.GetComponentInChildren<LocalEnemyController>().Initialize(3, destroyAction, false);
+        GameObject enemyGameObjectInstance = SpawnBase(enemyPrefab, position, out Action destroyAction);
+        enemyGameObjectInstance.GetComponentInChildren<LocalEnemyController>().Initialize(life, destroyAction, false);
+    }
+
+    private GameObject SpawnBase(GameObject enemyPrefab, Vector3 position, out Action destroyAction)
+    {
+        GameObject enemyGameObjectInstance = Instantiate(enemyPrefab, position, Quaternion.identity);
+        destroyAction = () => Destroy(enemyGameObjectInstance);
+
+        return enemyGameObjectInstance;
     }
 }

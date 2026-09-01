@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -37,10 +38,15 @@ public class NetworkProjectileManager : NetworkBehaviour
 
     private void ShootServer(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        LocalProjectile projectile = ProjectileManager.Instance.Shoot(originPosition, targetPosition, rotation, weaponID);
-        NetworkObject networkObject = projectile.GetComponentInParent<NetworkObject>();
-        networkObject.Spawn();
-        networkObject.GetComponent<NetworkProjectile>().InitializeServer(originPosition, targetPosition - originPosition, 5);
+        ProjectileData projectileData = ProjectileManager.Instance.GetProjectileData(weaponID.ToString());
+        List<LocalProjectile> projectileList = ProjectileManager.Instance.Shoot(originPosition, targetPosition, rotation, weaponID);
+
+        foreach (LocalProjectile projectile in projectileList)
+        {
+            NetworkObject networkObject = projectile.GetComponentInParent<NetworkObject>();
+            networkObject.Spawn();
+            networkObject.GetComponent<NetworkProjectile>().InitializeServer(originPosition, targetPosition - originPosition, projectileData.Velocity, projectileData.Damage);
+        }
     }
 
     public void ReturnProjectile(LocalProjectile projectile)

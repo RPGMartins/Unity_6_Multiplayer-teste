@@ -11,6 +11,8 @@ public class ProjectileManager : MonoBehaviour
     [SerializeField] private GameObject projectilePrefab;
     [SerializeField] private Transform projectileHolder;
 
+    [SerializeField] private List<ProjectileData> projectileDataList;
+
     private ObjectPool<LocalProjectile> projectilePool;
 
     private List<LocalProjectile> currentProjectiles = new List<LocalProjectile>();
@@ -45,13 +47,55 @@ public class ProjectileManager : MonoBehaviour
         projectilePool.Dispose();
     }
 
-    public LocalProjectile Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    public List<LocalProjectile> Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        LocalProjectile localProjectile = GetProjectileFromPool();
-        localProjectile.Initialize(originPosition, targetPosition - originPosition, 5);
-        currentProjectiles.Add(localProjectile);
+        ProjectileData projectileData = GetProjectileData(weaponID.ToString());
+        List<LocalProjectile> localProjectiles = Shoot(originPosition, targetPosition, projectileData);
+        currentProjectiles.AddRange(localProjectiles);
 
-        return localProjectile;
+        return localProjectiles;
+    }
+
+    public List<LocalProjectile> Shoot(Vector3 originPosition, Vector3 targetPosition, ProjectileData projectileData)
+    {
+        switch (projectileData.ProjectileType)
+        {
+            case projectilType.single:
+                LocalProjectile localProjectile = GetProjectileFromPool();
+                localProjectile.Initialize(originPosition, targetPosition - originPosition, projectileData.Velocity, projectileData.Damage);
+
+                return new List<LocalProjectile>() { localProjectile };
+
+            case projectilType.triple:
+
+                List<LocalProjectile> projectileList = new List<LocalProjectile>();
+                float spreadAngle = 15f;
+                Vector3 direction = (targetPosition - originPosition).normalized;
+                Vector3 upperDirection = Quaternion.AngleAxis(spreadAngle, Vector3.forward) * direction;
+                Vector3 lowerDirection = Quaternion.AngleAxis(-spreadAngle, Vector3.forward) * direction;
+
+                for (int i = 0; i < 3; i++)
+                {
+                    Vector3 tempDirection = direction;
+
+                    if (i == 1)
+                    {
+                        tempDirection = upperDirection;
+                    }
+                    else if (i == 2)
+                    {
+                        tempDirection = lowerDirection;
+                    }
+
+                    LocalProjectile tempProjectile = GetProjectileFromPool();
+                    tempProjectile.Initialize(originPosition, tempDirection, projectileData.Velocity, projectileData.Damage);
+                    projectileList.Add(tempProjectile);
+                }
+
+                return projectileList;
+        }
+
+        return null;
     }
 
     public LocalProjectile GetProjectileFromPool()
@@ -94,4 +138,36 @@ public class ProjectileManager : MonoBehaviour
     {
         OnProjectileExpired?.Invoke(localProjectile);
     }
+
+    public ProjectileData GetProjectileData(string weaponID)
+    {
+        foreach (ProjectileData projectileData in projectileDataList)
+        {
+            if (projectileData.WeaponID == weaponID)
+            {
+                return projectileData;
+            }
+        }
+
+        throw new Exception("ID de arma faltando");
+    }
+}
+
+[Serializable]
+public struct ProjectileData
+{
+    [SerializeField] private string weaponID;
+    [SerializeField] private projectilType projectilType;
+    [SerializeField] private float velocity;
+    [SerializeField] private int damage;
+
+    public string WeaponID => weaponID;
+    public projectilType ProjectileType => projectilType;
+    public float Velocity => velocity;
+    public int Damage => damage;
+}
+
+public enum projectilType
+{
+    single, triple
 }

@@ -9,17 +9,19 @@ public class PlayerMovement : MonoBehaviour
 
     private Func<Vector2> movementAction;
     private Func<Vector3> mouseMovementAction;
+    private Func<string> getCurrentWeaponID;
     private Func<bool> shootingAction;
 
     private bool initialized = false;
 
     public Transform Target => target;
 
-    public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector, Func<bool> shooting)
+    public void Initialize(Func<Vector2> movementVector, Func<Vector3> mouseMovementVector, Func<string> getCurrentWeaponID, Func<bool> shooting)
     {
         this.movementAction = movementVector;
         this.mouseMovementAction = mouseMovementVector;
         this.shootingAction = shooting;
+        this.getCurrentWeaponID = getCurrentWeaponID;
         initialized = true;
     }
 
@@ -36,7 +38,7 @@ public class PlayerMovement : MonoBehaviour
 
         if (shootingAction.Invoke() == true)
         {
-            WeaponManager.Instance.Shoot(transformToMove.position, target.position);
+            WeaponManager.Instance.Shoot(transformToMove.position, target.position, getCurrentWeaponID.Invoke());
         }
 
         RotateTowardsTarget();

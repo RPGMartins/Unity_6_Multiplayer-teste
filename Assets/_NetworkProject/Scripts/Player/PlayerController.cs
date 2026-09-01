@@ -29,7 +29,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
     {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
-        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerInput.Shooting);
+        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerLocalInventoryController.GetCurrentWeaponID, playerInput.Shooting);
         playerAnimation.Initialize(playerLocalInventoryController);
         playerLocalInventoryController.Initialize(playerId);
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);

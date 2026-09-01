@@ -6,7 +6,7 @@ public class PlayerLocalInventoryController : MonoBehaviour
 {
     public Action onLocalInventoryChanged;
     public event Action<WeaponItem> onEquippedSlotChanged;
-
+    private BaseItem currentWeapon;
     private FixedString64Bytes authenticateID;
 
     public void Initialize(FixedString64Bytes authenticateID)
@@ -35,5 +35,11 @@ public class PlayerLocalInventoryController : MonoBehaviour
     private void EquipWeapon(WeaponItem weaponItem)
     {
         onEquippedSlotChanged?.Invoke(weaponItem);
+        currentWeapon = weaponItem;
+    }
+
+    public string GetCurrentWeaponID()
+    {
+        return currentWeapon.ItemID;
     }
 }

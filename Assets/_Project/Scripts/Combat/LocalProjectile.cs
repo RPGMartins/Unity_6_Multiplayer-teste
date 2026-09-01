@@ -13,7 +13,7 @@ public class LocalProjectile : MonoBehaviour
 
     public Transform ProjectileTransformHolder => projectileTransformHolder;
 
-    public void Initialize(Vector3 originalPosition, Vector3 direction, float velocity)
+    public void Initialize(Vector3 originalPosition, Vector3 direction, float velocity, int damage)
     {
         projectileTransformHolder.transform.position = originalPosition;
         this.direction = direction.normalized;
@@ -21,7 +21,7 @@ public class LocalProjectile : MonoBehaviour
         this.initialized = true;
         this.originPosition = originalPosition;
 
-        projectileCollision.Initialize(InvokeProjectExpired);
+        projectileCollision.Initialize(InvokeProjectExpired, damage);
 
         void InvokeProjectExpired()
         {

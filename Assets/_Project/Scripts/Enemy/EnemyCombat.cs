@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class EnemyCombat : MonoBehaviour
 {
+    [SerializeField] private float shootCooldownMax;
     private PlayerHitbox nearPlayer;
+    private float currentShootColldown;
 
     public void MainAction(EnemyState enemyState, List<PlayerHitbox> players, Transform enemyTransform, Vector2 enemyPosition, out EnemyState newEnemyState)
     {
@@ -37,10 +39,6 @@ public class EnemyCombat : MonoBehaviour
                 FollowPlayer(enemyTransform, nearPlayer.PlayerTransform.position);
 
                 break;
-
-            case EnemyState.Attacking:
-
-                break;
         }
     }
 
@@ -63,13 +61,32 @@ public class EnemyCombat : MonoBehaviour
         return playerToFollow;
     }
 
-    private void FollowPlayer(Transform enemyTransform, Vector2 playerPosition)
+    private bool FollowPlayer(Transform enemyTransform, Vector2 playerPosition)
     {
+        bool isNear = CheckIfIsNear(enemyTransform, playerPosition);
+
+        if (isNear == true)
+        {
+            return true;
+        }
+
         enemyTransform.position = Vector3.MoveTowards(enemyTransform.position, playerPosition, 1 * Time.deltaTime);
+
+        return false;
+    }
+
+    private bool CheckIfIsNear(Transform enemyTransform, Vector2 playerPosition)
+    {
+        if (Vector2.Distance(enemyTransform.position, playerPosition) <= 2)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
 
 public enum EnemyState
 {
-    Idle, Following, Attacking
+    Idle, Following
 }

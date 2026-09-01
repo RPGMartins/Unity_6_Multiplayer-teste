@@ -8,8 +8,9 @@ public class NetworkProjectile : NetworkBehaviour
     private NetworkVariable<Vector3> originalPosition = new NetworkVariable<Vector3>();
     private NetworkVariable<Vector3> direction = new NetworkVariable<Vector3>();
     private NetworkVariable<float> velocity = new NetworkVariable<float>();
+    private NetworkVariable<int> damage = new NetworkVariable<int>();
 
-    public void InitializeServer(Vector3 originalPosition, Vector3 newDirection, float velocity)
+    public void InitializeServer(Vector3 originalPosition, Vector3 newDirection, float velocity, int damage)
     {
         if (IsServer == false || IsSpawned == false)
         {
@@ -19,6 +20,7 @@ public class NetworkProjectile : NetworkBehaviour
         this.originalPosition.Value = originalPosition;
         this.direction.Value = newDirection;
         this.velocity.Value = velocity;
+        this.damage.Value = damage;
     }
 
     public override void OnNetworkSpawn()
@@ -49,6 +51,6 @@ public class NetworkProjectile : NetworkBehaviour
 
     private void TryInitialize()
     {
-        localProjectile.Initialize(originalPosition.Value, direction.Value, velocity.Value);
+        localProjectile.Initialize(originalPosition.Value, direction.Value, velocity.Value, damage.Value);
     }
 }

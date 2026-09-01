@@ -12,6 +12,12 @@ public class SceneControllerManager : NetworkBehaviour
     private NetworkSceneManager networkSceneManager;
     private LobbyManager lobbyManager;
     private Action<LobbyStateEnum> lobbyStateCallback;
+    public static SceneControllerManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -35,11 +41,13 @@ public class SceneControllerManager : NetworkBehaviour
         lobbyManager.OnSessionDisconnect += (_) => GotoMainMenuScene();
     }
 
+    [ContextMenu("GotoGameplayScene")]
     public void GotoGameplayScene()
     {
         ChangeScene(gameplaySceneName);
     }
 
+    [ContextMenu("GotoMainMenuScene")]
     public void GotoMainMenuScene()
     {
         ChangeScene(mainMenuSceneName);

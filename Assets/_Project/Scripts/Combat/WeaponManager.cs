@@ -31,17 +31,17 @@ public class WeaponManager : MonoBehaviour
         }
     }
 
-    public void Shoot(Vector3 originPosition, Vector3 targetPosition)
+    public void Shoot(Vector3 originPosition, Vector3 targetPosition, string weaponID)
     {
         //Validar arma/cooldown etc
 
         if (isConnected == true)
         {
-            networkProjectileManager.Shoot(originPosition, targetPosition, Quaternion.identity, "0");
+            networkProjectileManager.Shoot(originPosition, targetPosition, Quaternion.identity, weaponID);
         }
         else
         {
-            projectileManager.Shoot(originPosition, targetPosition, Quaternion.identity, "0");
+            projectileManager.Shoot(originPosition, targetPosition, Quaternion.identity, weaponID);
         }
     }
 }

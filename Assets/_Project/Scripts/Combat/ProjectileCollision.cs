@@ -4,10 +4,12 @@ using UnityEngine;
 public class ProjectileCollision : MonoBehaviour
 {
     private Action onHitTarget;
+    private int damage;
 
-    public void Initialize(Action onHitTarget)
+    public void Initialize(Action onHitTarget, int damage)
     {
         this.onHitTarget = onHitTarget;
+        this.damage = damage;
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -21,7 +23,7 @@ public class ProjectileCollision : MonoBehaviour
 
         if (networkTarget != null && networkTarget.IsSpawned == true)
         {
-            networkTarget.TakeDamage(1);
+            networkTarget.TakeDamage(damage);
             onHitTarget?.Invoke();
 
             return;
@@ -31,7 +33,7 @@ public class ProjectileCollision : MonoBehaviour
 
         if (localTarget != null)
         {
-            localTarget.Hit(1);
+            localTarget.Hit(damage);
             onHitTarget?.Invoke();
         }
     }

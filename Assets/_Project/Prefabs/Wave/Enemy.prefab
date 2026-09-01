@@ -81,7 +81,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 5
+  m_Radius: 10
 --- !u!1 &1725601962213283590
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,7 +135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2252226339
+  GlobalObjectIdHash: 483491931
   InScenePlacedSourceGlobalObjectIdHash: 2252226339
   DeferredDespawnTick: 0
   Ownership: 1
@@ -298,6 +298,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 360b68a29928cc4458314c8002840a86, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyCombat
+  shootCooldownMax: 5
 --- !u!1 &4663674836696890995
 GameObject:
   m_ObjectHideFlags: 0
