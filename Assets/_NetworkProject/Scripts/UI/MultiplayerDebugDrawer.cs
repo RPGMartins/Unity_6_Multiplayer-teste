@@ -94,7 +94,7 @@ public class MultiplayerDebugDrawer
 
         if (GUILayout.Button("Join Lobby"))
         {
-            lobbyManager.JoinSession(joinCode);
+            lobbyManager.JoinSessionByCode(joinCode);
         }
 
         if (GUILayout.Button("Quick Join"))
@@ -191,7 +191,7 @@ public class MultiplayerDebugDrawer
         GUILayout.EndHorizontal();
     }
 
-    private static SessionOptions CreateSessionOptions(string name = "", bool isPrivate = false, int maxPlayers = -1, string password = "")
+    public static SessionOptions CreateSessionOptions(string name = "", bool isPrivate = false, int maxPlayers = -1, string password = "")
     {
         if (name == string.Empty)
         {

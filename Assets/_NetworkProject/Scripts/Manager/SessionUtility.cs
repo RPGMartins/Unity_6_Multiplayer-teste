@@ -27,7 +27,11 @@ public static class SessionUtility
 
         try
         {
+            bool oldIsLocked = options.IsLocked;
+            options.IsLocked = true;
             IHostSession currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
+            currentSession.IsLocked = oldIsLocked;
+            await currentSession.SavePropertiesAsync();
             onSessionConnected?.Invoke(currentSession);
         }
         catch (SessionException exception)
@@ -72,7 +76,7 @@ public static class SessionUtility
         }
     }
 
-    private static async Task JoinSessionByID(string joinID, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
+    public static async Task JoinSessionByID(string joinID, Action<ISession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
         onStartTryConnectToSession?.Invoke();
 
@@ -187,7 +191,7 @@ public static class SessionUtility
 
     public static async Task UpdateSessionData(ISession currentSession, bool isPrivate, string lobbyName, Action<ISession> onSessionUpdate, Action onStartTrySessionUpdate, Action<SessionError> onSessionUpdateFailed)
     {
-        if (currentSession.IsServer == false)
+        if (currentSession.IsHost == false)
         {
             return;
         }

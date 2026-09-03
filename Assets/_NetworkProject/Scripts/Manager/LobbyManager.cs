@@ -32,6 +32,13 @@ public class LobbyManager : MonoBehaviour
     private ISession currentSession;
     public ISession CurrentSession => currentSession;
 
+    public static LobbyManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     public void Initialize()
     {
         OnSessionConnected += PlayerJoinedSession;
@@ -80,9 +87,14 @@ public class LobbyManager : MonoBehaviour
         await SessionUtility.CreateSessionAsHost(sessionOptions, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
-    public async Task JoinSession(string joinCode)
+    public async Task JoinSessionByCode(string joinCode)
     {
         await SessionUtility.JoinSessionByCode(joinCode, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+    }
+
+    public async Task JoinSessionByID(string sessionID)
+    {
+        await SessionUtility.JoinSessionByID(sessionID, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task QuickJoinSession()
@@ -209,6 +221,11 @@ public class LobbyManager : MonoBehaviour
     #endregion
 
     #region Uttils
+
+    public LobbyData GetLobbyData()
+    {
+        return lobbyNetworkState.LobbyData.Value;
+    }
 
     public string GetLobbyName()
     {
