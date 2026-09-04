@@ -80,7 +80,7 @@ public class SceneControllerManager : NetworkBehaviour
 
     private void NetworkSceneManagerOnOnLoadComplete(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        if (NetworkManager.Singleton.IsServer == true)
+        if (NetworkManager.Singleton.IsServer == false)
         {
             return;
         }
@@ -100,7 +100,7 @@ public class SceneControllerManager : NetworkBehaviour
                 }
             }
 
-            PlayerInitializer.instance.InitializePlayersRPC(playerIds.ToArray());
+            PlayerInitializer.instance.PreparePlayersToBeInitialized(playerIds.ToArray());
         }
         else if (sceneName == mainMenuSceneName)
         {
@@ -129,7 +129,7 @@ public class SceneControllerManager : NetworkBehaviour
                 playerIds.Add(playerAuthenticateID);
             }
 
-            PlayerInitializer.instance.InitializePlayersRPC(playerIds.ToArray());
+            PlayerInitializer.instance.PreparePlayersToBeInitialized(playerIds.ToArray());
         }
     }
 

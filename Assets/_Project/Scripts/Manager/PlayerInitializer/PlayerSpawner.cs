@@ -6,13 +6,12 @@ using UnityEngine;
 public class PlayerSpawner : MonoBehaviour
 {
     [SerializeField] private GameObject playerPrefab;
-    [SerializeField] private GameObject playerPrefabNetwork;
 
-    private List<IPlayerController> createdPlayers = new List<IPlayerController>();
+    private List<PlayerController> createdPlayers = new List<PlayerController>();
 
-    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, ulong clientID, bool network)
+    public PlayerController SpawnPlayer(IInventoryManager inventoryManager, ulong clientID, bool network)
     {
-        IPlayerController playerController = SpawnPlayer(clientID, network);
+        PlayerController playerController = SpawnPlayer(clientID, network);
         createdPlayers.Add(playerController);
         inventoryManager.OnInventoryChanged += (tempPlayerID) => InventoryChanged(playerController, tempPlayerID);
 
@@ -28,7 +27,7 @@ public class PlayerSpawner : MonoBehaviour
         inventoryManager.ServerAddItem(inventoryItemPistol, playerID);
     }
 
-    private void InventoryChanged(IPlayerController playerController, FixedString64Bytes playerID)
+    private void InventoryChanged(PlayerController playerController, FixedString64Bytes playerID)
     {
         if (playerID == playerController.AuthenticateID)
         {
@@ -36,28 +35,28 @@ public class PlayerSpawner : MonoBehaviour
         }
     }
 
-    public IPlayerController SpawnPlayer(ulong clientID, bool network)
+    public PlayerController SpawnPlayer(ulong clientID, bool network)
     {
-        IPlayerController playerController = null;
+        PlayerController playerController = null;
 
         if (network == true)
         {
-            playerController = SpawnPrefab(playerPrefabNetwork);
+            playerController = SpawnPrefab();
             NetworkObject instanceNetworkObject = playerController.Transform.GetComponentInParent<NetworkObject>();
             instanceNetworkObject.SpawnAsPlayerObject(clientID, true);
         }
         else
         {
-            playerController = SpawnPrefab(playerPrefab);
+            playerController = SpawnPrefab();
         }
 
         return playerController;
     }
 
-    private IPlayerController SpawnPrefab(GameObject tempPrefab)
+    private PlayerController SpawnPrefab()
     {
-        GameObject playerInstance = Instantiate(tempPrefab);
-        IPlayerController playerController = playerInstance.GetComponentInChildren<IPlayerController>();
+        GameObject playerInstance = Instantiate(playerPrefab);
+        PlayerController playerController = playerInstance.GetComponentInChildren<PlayerController>();
 
         return playerController;
     }

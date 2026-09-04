@@ -39,7 +39,7 @@ public class PlayerInitializer : MonoBehaviour
 
         if (clientsToCreate.Count <= 0)
         {
-            InitializePlayersRPC(new FixedString64Bytes[] { DEFAULT_PLAYER_ID });
+            PreparePlayersToBeInitialized(new FixedString64Bytes[] { DEFAULT_PLAYER_ID });
         }
     }
 
@@ -63,8 +63,8 @@ public class PlayerInitializer : MonoBehaviour
         {
             ulong clientID = 0;
             FixedString64Bytes playerID = clientsToCreate[i];
-            IPlayerController playerController = SpawnPlayer(clientID, i, false);
-            playerController.Initialize(playerID, clientID, () => InitializeInventoryRPC(playerID));
+            PlayerController playerController = SpawnPlayer(clientID, i, false);
+            playerController.Initialize(playerID, clientID);
         }
     }
 
@@ -83,7 +83,7 @@ public class PlayerInitializer : MonoBehaviour
         for (int i = clientsToCreate.Count - 1; i >= 0; i--)
         {
             ulong clientID = 0;
-
+            FixedString64Bytes playerID = clientsToCreate[i];
             List<PlayerData> lobbyPlayers = lobbyManager.GetLobbyPlayers();
 
             foreach (PlayerData playerData in lobbyPlayers)
@@ -99,7 +99,8 @@ public class PlayerInitializer : MonoBehaviour
             }
 
             NetworkInventoryManager.Instance.ServerAddPlayer(clientsToCreate[i]);
-            SpawnPlayer(clientID, i, true);
+            PlayerController playerController = SpawnPlayer(clientID, i, true);
+            playerController.InitializeRPC(playerID, clientID);
         }
     }
 
@@ -114,9 +115,9 @@ public class PlayerInitializer : MonoBehaviour
         }
     }
 
-    private IPlayerController SpawnPlayer(ulong clientID, int index, bool network)
+    private PlayerController SpawnPlayer(ulong clientID, int index, bool network)
     {
-        IPlayerController playerController = playerSpawner.SpawnPlayer(inventoryManager, clientID, network);
+        PlayerController playerController = playerSpawner.SpawnPlayer(inventoryManager, clientID, network);
         clientsCreated.Add(clientsToCreate[index]);
         clientsToCreate.RemoveAt(index);
 
@@ -137,8 +138,7 @@ public class PlayerInitializer : MonoBehaviour
         clientsInventoryToInitialize.Add(clientsIDs);
     }
 
-    [Rpc(SendTo.Server)]
-    public void InitializePlayersRPC(FixedString64Bytes[] clientsIDs)
+    public void PreparePlayersToBeInitialized(FixedString64Bytes[] clientsIDs)
     {
         clientsToCreate.AddRange(clientsIDs);
     }

@@ -1,8 +1,8 @@
-using System;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour, IPlayerController
+public class PlayerController : NetworkBehaviour
 {
     [SerializeField] private Transform playerTransform;
     [SerializeField] private PlayerMovement playerMovement;
@@ -22,7 +22,12 @@ public class PlayerController : MonoBehaviour, IPlayerController
     public FixedString64Bytes AuthenticateID { get; set; }
     public ulong ClientID { get; set; }
 
-    public void Initialize(FixedString64Bytes playerId, ulong clientID, Action callback)
+    public override void OnNetworkSpawn()
+    {
+        EnableScripts(IsOwner);
+    }
+
+    public void Initialize(FixedString64Bytes playerId, ulong clientID)
     {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
@@ -31,6 +36,28 @@ public class PlayerController : MonoBehaviour, IPlayerController
         playerLocalInventoryController.Initialize(playerId);
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
         playerHitbox.Initilize(playerTransform);
-        callback.Invoke();
+
+        PlayerInitializer.instance.InitializeInventoryRPC(playerId);
+
+        if (NetworkConnectionChecker.CheckConnection() == false)
+        {
+            EnableScripts(true);
+        }
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    public void InitializeRPC(FixedString64Bytes playerId, ulong clientID)
+    {
+        Initialize(playerId, clientID);
+    }
+
+    private void EnableScripts(bool value)
+    {
+        playerInput.enabled = value;
+        playerInteract.enabled = value;
+        playerAnimation.enabled = value;
+        playerMovement.EnableDisableAim(value);
+        playerMovement.enabled = value;
+        playerLocalInventoryController.enabled = value;
     }
 }
