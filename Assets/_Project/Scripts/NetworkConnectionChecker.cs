@@ -6,4 +6,9 @@ public static class NetworkConnectionChecker
     {
         return NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening == true;
     }
+
+    public static bool CheckIfHasAuthority()
+    {
+        return CheckConnection() && (NetworkManager.Singleton.IsHost || NetworkManager.Singleton.IsServer);
+    }
 }

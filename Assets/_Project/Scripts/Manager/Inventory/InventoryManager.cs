@@ -6,6 +6,7 @@ using UnityEngine;
 public class InventoryManager : MonoBehaviour, IInventoryManager
 {
     [SerializeField] private List<InventoryData> playerInventoryList = new List<InventoryData>();
+    [SerializeField] private List<SerializedInventoryData> playerInventoryListSerialized = new List<SerializedInventoryData>();
     public event Action<FixedString64Bytes> OnInventoryChanged;
 
     public static InventoryManager Instance { get; private set; }
@@ -22,7 +23,9 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
             return false;
         }
 
-        playerInventoryList.Add(new InventoryData(playerID, baseItem.ItemID));
+        InventoryData inventoryData = new InventoryData(playerID, baseItem.ItemID);
+        playerInventoryList.Add(inventoryData);
+        playerInventoryListSerialized.Add(new SerializedInventoryData(inventoryData));
         OnInventoryChanged?.Invoke(playerID);
 
         return true;
@@ -36,12 +39,24 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         }
 
         playerInventoryList.Remove(inventoryData);
+
+        foreach (SerializedInventoryData serializedInventoryData in playerInventoryListSerialized)
+        {
+            if (serializedInventoryData.PlayerID == inventoryData.PlayerID.Value && serializedInventoryData.ItemID == inventoryData.ItemID.Value)
+            {
+                playerInventoryListSerialized.Remove(serializedInventoryData);
+
+                break;
+            }
+        }
+
         OnInventoryChanged?.Invoke(playerID);
     }
 
     public void ResetVariables()
     {
         playerInventoryList.Clear();
+        playerInventoryListSerialized.Clear();
     }
 
     public BaseItem GetPlayerItemBySlot(FixedString64Bytes playerID, int slotIndex)

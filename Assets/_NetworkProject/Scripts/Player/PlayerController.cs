@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ public class PlayerController : MonoBehaviour, IPlayerController
         }
     }
 
-    public void Initialize(FixedString64Bytes playerId, ulong clientID, bool enableScripts = true)
+    public void Initialize(FixedString64Bytes playerId, ulong clientID, IIniciadorDoPlayer iniciadorDoPlayer = null)
     {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
@@ -35,18 +36,17 @@ public class PlayerController : MonoBehaviour, IPlayerController
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
         playerHitbox.Initilize(playerTransform);
 
-        DisableOtherPlayersScripts(enableScripts);
+        if (iniciadorDoPlayer == null)
+        {
+            iniciadorDoPlayer = IniciadorDoPlayer.instance;
+        }
+
+        InitializeInventory(iniciadorDoPlayer, playerId);
     }
 
-    private void DisableOtherPlayersScripts(bool enable)
+    private void InitializeInventory(IIniciadorDoPlayer iniciadorDoPlayer, FixedString64Bytes playerId)
     {
-        PlayerMovement.EnableDisableAim(enable);
-
-        PlayerAnimation.enabled = enable;
-        playerInput.enabled = enable;
-        playerInteract.enabled = enable;
-        playerLocalInventoryController.enabled = enable;
-        playerMovement.enabled = enable;
+        iniciadorDoPlayer.InitializeInventoryRPC(playerId);
     }
 
     public Transform Transform => transform;

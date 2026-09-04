@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -79,10 +80,29 @@ public class SceneControllerManager : NetworkBehaviour
 
     private void NetworkSceneManagerOnOnLoadComplete(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        if (sceneName == gameplaySceneName)
+        if (NetworkManager.Singleton.IsServer == true)
+        {
+            return;
+        }
+
+        if (sceneName == gameplaySceneName) // criar uma classe GameplayInitializer, em que vai passar a lista de clients, e ela vai incializar tudo certinho
         {
             lobbyStateCallback?.Invoke(LobbyStateEnum.OnGameplay);
-            PlayerInitializerNetwork.instance.InitializePlayers(clientsCompleted);
+            List<FixedString64Bytes> playerIds = new List<FixedString64Bytes>();
+
+            foreach (ulong clientID in clientsCompleted)
+            {
+                FixedString64Bytes playerAuthenticateID = GetPlayerAuthenticateIDByClientID(clientID);
+
+                if (playerAuthenticateID.Value != null)
+                {
+                    playerIds.Add(playerAuthenticateID);
+                }
+            }
+
+            IniciadorDoPlayerNetwork.instance.InitializePlayersRPC(playerIds.ToArray());
+
+            //PlayerInitializerNetwork.instance.InitializePlayers(clientsCompleted);
         }
         else if (sceneName == mainMenuSceneName)
         {
@@ -90,14 +110,41 @@ public class SceneControllerManager : NetworkBehaviour
         }
     }
 
-    private void NetworkSceneManagerOnOnSynchronizeComplete(ulong clientid) //Quando cliente sincroniza com a sessao
+    private void NetworkSceneManagerOnOnSynchronizeComplete(ulong clientID) //Quando cliente sincroniza com a sessao
     {
+        if (NetworkManager.Singleton.IsServer == true)
+        {
+            return;
+        }
+
         if (SceneManager.GetActiveScene().name == mainMenuSceneName)
         {
         }
         else if (SceneManager.GetActiveScene().name == gameplaySceneName)
         {
-            PlayerInitializerNetwork.instance.InitializePlayers(new List<ulong>() { clientid });
+            List<FixedString64Bytes> playerIds = new List<FixedString64Bytes>();
+
+            FixedString64Bytes playerAuthenticateID = GetPlayerAuthenticateIDByClientID(clientID);
+
+            if (playerAuthenticateID != null)
+            {
+                playerIds.Add(playerAuthenticateID);
+            }
+
+            IniciadorDoPlayerNetwork.instance.InitializePlayersRPC(playerIds.ToArray());
         }
+    }
+
+    private FixedString64Bytes GetPlayerAuthenticateIDByClientID(ulong clientID)
+    {
+        foreach (PlayerData playerData in LobbyManager.Instance.GetLobbyPlayers())
+        {
+            if (playerData.ClientId == clientID)
+            {
+                return playerData.AuthenticationID;
+            }
+        }
+
+        return null;
     }
 }

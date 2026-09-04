@@ -7,7 +7,7 @@ using UnityEngine;
 public class PlayerInitializerNetwork : NetworkBehaviour
 {
     public static PlayerInitializerNetwork instance;
-    [SerializeField] private PlayerInitializerSingleplayer playerInitializerSingleplayer;
+    [SerializeField] private PlayerInitializerSinglePlayer playerInitializerSinglePlayer;
     [SerializeField] private PlayerSpawnerNetwork playerSpawnerNetwork;
     [SerializeField] private NetworkInventoryManager networkInventoryManager;
 
@@ -26,6 +26,8 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
     private void Start()
     {
+        return;
+
         if (NetworkConnectionChecker.CheckConnection() == true)
         {
             return;
@@ -33,7 +35,7 @@ public class PlayerInitializerNetwork : NetworkBehaviour
 
         if (clientsToCreate.Count <= 0)
         {
-            playerInitializerSingleplayer.SpawnPlayer(0);
+            playerInitializerSinglePlayer.SpawnPlayer(0);
         }
     }
 

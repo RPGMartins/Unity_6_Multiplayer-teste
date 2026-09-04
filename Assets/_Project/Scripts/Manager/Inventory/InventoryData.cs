@@ -1,6 +1,7 @@
 ﻿using System;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 [Serializable]
 public struct InventoryData : INetworkSerializable, IEquatable<InventoryData>
@@ -27,4 +28,20 @@ public struct InventoryData : INetworkSerializable, IEquatable<InventoryData>
     {
         return playerID.Equals(other.playerID) && itemID.Equals(other.itemID);
     }
+}
+
+[Serializable]
+public struct SerializedInventoryData
+{
+    [SerializeField] private string playerID;
+    [SerializeField] private string itemID;
+
+    public SerializedInventoryData(InventoryData inventoryData)
+    {
+        this.playerID = inventoryData.PlayerID.Value;
+        this.itemID = inventoryData.ItemID.Value;
+    }
+
+    public string PlayerID => playerID;
+    public string ItemID => itemID;
 }
