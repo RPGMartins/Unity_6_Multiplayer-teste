@@ -11,9 +11,7 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
     public event Action OnDefaultInventoryAdded;
 
     [SerializeField] private PlayerInitializer playerInitializer;
-    [SerializeField] private PlayerInitializerNetwork playerInitializerNetwork;
     [SerializeField] private PlayerSpawner playerSpawner;
-    [SerializeField] private PlayerSpawnerNetwork playerSpawnerNetwork;
     [SerializeField] private InventoryManager inventoryManager;
     [SerializeField] private NetworkInventoryManager networkInventoryManager;
 
@@ -44,7 +42,7 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
         }
     }
 
-    private void Update() // tirar do update
+    private void Update()
     {
         if (NetworkConnectionChecker.CheckIfHasAuthority() == true)
         {
@@ -63,9 +61,7 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
         for (int i = clientsToCreate.Count - 1; i >= 0; i--)
         {
             ulong clientID = 0;
-            playerInitializer.SpawnPlayer(inventoryManager, playerSpawner, clientID);
-            clientsCreated.Add(clientsToCreate[i]);
-            clientsToCreate.RemoveAt(i);
+            SpawnPlayer(clientID, i, false);
         }
     }
 
@@ -99,9 +95,8 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
                 break;
             }
 
-            SpawnPlayer(clientsToCreate[i], clientID);
-            clientsCreated.Add(clientsToCreate[i]);
-            clientsToCreate.RemoveAt(i);
+            NetworkInventoryManager.Instance.ServerAddPlayer(clientsToCreate[i]);
+            SpawnPlayer(clientID, i, true);
         }
     }
 
@@ -117,11 +112,11 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
         }
     }
 
-    private IPlayerController SpawnPlayer(FixedString64Bytes playerID, ulong clientID)
+    private void SpawnPlayer(ulong clientID, int index, bool network)
     {
-        NetworkInventoryManager.Instance.ServerAddPlayer(playerID);
-
-        return playerInitializer.SpawnPlayer(networkInventoryManager, playerSpawnerNetwork, clientID);
+        playerInitializer.SpawnPlayer(inventoryManager, playerSpawner, clientID, network);
+        clientsCreated.Add(clientsToCreate[index]);
+        clientsToCreate.RemoveAt(index);
     }
 
     public void InitializePlayersRPC(FixedString64Bytes[] clientsIDs)

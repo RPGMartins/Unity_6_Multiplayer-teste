@@ -10,9 +10,9 @@ public class PlayerInitializer : MonoBehaviour
 
     private List<IPlayerController> createdPlayers = new List<IPlayerController>();
 
-    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, IPlayerSpawner playerSpawner, ulong clientID)
+    public IPlayerController SpawnPlayer(IInventoryManager inventoryManager, PlayerSpawner playerSpawner, ulong clientID, bool network)
     {
-        IPlayerController playerController = playerSpawner.SpawnPlayer(clientID);
+        IPlayerController playerController = playerSpawner.SpawnPlayer(clientID, network);
         createdPlayers.Add(playerController);
         inventoryManager.OnInventoryChanged += (tempPlayerID) => InventoryChanged(playerController, tempPlayerID);
 
