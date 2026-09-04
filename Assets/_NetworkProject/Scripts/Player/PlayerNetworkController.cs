@@ -17,7 +17,13 @@ public class PlayerNetworkController : NetworkBehaviour, IPlayerController
         AuthenticationManager authenticationManager = FindAnyObjectByType<AuthenticationManager>();
         AuthenticateID = authenticationManager.AuthenticationID;
         ClientID = OwnerClientId;
-        playerController.Initialize(AuthenticateID, ClientID, IniciadorDoPlayerNetwork.instance);
+
+        Initialize(AuthenticateID, ClientID, () => PlayerInitializer.instance.InitializeInventoryRPC(AuthenticateID));
+    }
+
+    public void Initialize(FixedString64Bytes playerId, ulong clientID, Action callback)
+    {
+        playerController.Initialize(playerId, clientID, callback);
         DisableOtherPlayersScripts(IsOwner);
     }
 

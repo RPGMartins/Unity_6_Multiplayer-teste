@@ -444,9 +444,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1055454867}
   - component: {fileID: 1055454871}
-  - component: {fileID: 1055454872}
+  - component: {fileID: 1055454876}
   - component: {fileID: 1055454875}
-  - component: {fileID: 1055454870}
   m_Layer: 0
   m_Name: PlayerInitializer
   m_TagString: Untagged
@@ -469,20 +468,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2039713379}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1055454870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1055454866}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c224d744206ee35498f2701d54df9b13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerSpawner
-  playerPrefab: {fileID: 2006026893791693928, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
-  playerPrefabNetwork: {fileID: 1769700671010398578, guid: 4c20c3c1d379afc49a1c529b9abb0f2b, type: 3}
 --- !u!114 &1055454871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -495,24 +480,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d57e53d39091c6f419a7a61f25e7251d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IniciadorDoPlayer
-  playerInitializer: {fileID: 1055454875}
-  playerSpawner: {fileID: 1055454870}
+  playerSpawner: {fileID: 1055454875}
   inventoryManager: {fileID: 1540383573}
   networkInventoryManager: {fileID: 1540383572}
---- !u!114 &1055454872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1055454866}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6466819a9af16b44bb70e05e2c14465, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IniciadorDoPlayerNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
-  iniciadorDoPlayer: {fileID: 1055454871}
 --- !u!114 &1055454875
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -525,6 +495,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bf7c4ca4ec97e9408bc2e07831a29e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInitializer
+  playerPrefab: {fileID: 2006026893791693928, guid: c05596eef791ca140bdd532bf7a9c558, type: 3}
+  playerPrefabNetwork: {fileID: 1769700671010398578, guid: 4c20c3c1d379afc49a1c529b9abb0f2b, type: 3}
+--- !u!114 &1055454876
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1055454866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5037436d75c378640966b85ab13142fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInitializerNetwork
+  ShowTopMostFoldoutHeaderGroup: 1
+  playerInitializer: {fileID: 1055454871}
 --- !u!1 &1361784181
 GameObject:
   m_ObjectHideFlags: 0
@@ -812,6 +798,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bf7c4ca4ec97e9408bc2e07831a29e2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInitializerUtils
+  playerPrefab: {fileID: 0}
+  playerPrefabNetwork: {fileID: 0}
 --- !u!1 &1811930585
 GameObject:
   m_ObjectHideFlags: 0

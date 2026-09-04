@@ -1,3 +1,4 @@
+using System;
 using Unity.Collections;
 using UnityEngine;
 
@@ -8,4 +9,6 @@ public interface IPlayerController
     public FixedString64Bytes AuthenticateID { get; set; }
     public ulong ClientID { get; set; }
     public PlayerLocalInventoryController PlayerLocalInventoryController { get; }
+
+    public void Initialize(FixedString64Bytes playerId, ulong clientID, Action callback);
 }

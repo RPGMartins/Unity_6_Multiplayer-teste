@@ -1,16 +1,17 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
+public class PlayerInitializer : MonoBehaviour
 {
     public static string DEFAULT_PLAYER_ID = "DefaultPlayer";
-    public static IniciadorDoPlayer instance;
+    public static string DEFAULT_FlashLight_ID = "FlashLight";
+    public static string DEFAULT_Pistol_ID = "Pistol";
 
-    public event Action OnDefaultInventoryAdded;
+    public static PlayerInitializer instance;
 
-    [SerializeField] private PlayerInitializer playerInitializer;
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private InventoryManager inventoryManager;
     [SerializeField] private NetworkInventoryManager networkInventoryManager;
@@ -61,7 +62,9 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
         for (int i = clientsToCreate.Count - 1; i >= 0; i--)
         {
             ulong clientID = 0;
-            SpawnPlayer(clientID, i, false);
+            FixedString64Bytes playerID = clientsToCreate[i];
+            IPlayerController playerController = SpawnPlayer(clientID, i, false);
+            playerController.Initialize(playerID, clientID, () => InitializeInventoryRPC(playerID));
         }
     }
 
@@ -69,7 +72,7 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
     {
         for (int i = clientsInventoryToInitialize.Count - 1; i >= 0; i--)
         {
-            playerInitializer.InitializeDefaultInventoryToPlayer(inventoryManager, clientsInventoryToInitialize[i]);
+            playerSpawner.InitializeDefaultInventoryToPlayer(inventoryManager, clientsInventoryToInitialize[i]);
             clientsInventoryInitialized.Add(clientsInventoryToInitialize[i]);
             clientsInventoryToInitialize.RemoveAt(i);
         }
@@ -104,33 +107,41 @@ public class IniciadorDoPlayer : MonoBehaviour, IIniciadorDoPlayer
     {
         for (int i = clientsInventoryToInitialize.Count - 1; i >= 0; i--)
         {
-            playerInitializer.InitializeDefaultInventoryToPlayer(networkInventoryManager, clientsInventoryToInitialize[i]);
-            RebuildLocalInventory();
+            playerSpawner.InitializeDefaultInventoryToPlayer(networkInventoryManager, clientsInventoryToInitialize[i]);
             clientsInventoryInitialized.Add(clientsInventoryToInitialize[i]);
             clientsInventoryToInitialize.RemoveAt(i);
-            OnDefaultInventoryAdded?.Invoke();
+            RebuildLocalInventoryRPC();
         }
     }
 
-    private void SpawnPlayer(ulong clientID, int index, bool network)
+    private IPlayerController SpawnPlayer(ulong clientID, int index, bool network)
     {
-        playerInitializer.SpawnPlayer(inventoryManager, playerSpawner, clientID, network);
+        IPlayerController playerController = playerSpawner.SpawnPlayer(inventoryManager, clientID, network);
         clientsCreated.Add(clientsToCreate[index]);
         clientsToCreate.RemoveAt(index);
+
+        return playerController;
     }
 
-    public void InitializePlayersRPC(FixedString64Bytes[] clientsIDs)
+    #region RPC
+
+    [Rpc(SendTo.NotMe)]
+    private void RebuildLocalInventoryRPC()
     {
-        clientsToCreate.AddRange(clientsIDs);
+        networkInventoryManager.RebuildLocalInventory();
     }
 
+    [Rpc(SendTo.Server)]
     public void InitializeInventoryRPC(FixedString64Bytes clientsIDs)
     {
         clientsInventoryToInitialize.Add(clientsIDs);
     }
 
-    public void RebuildLocalInventory()
+    [Rpc(SendTo.Server)]
+    public void InitializePlayersRPC(FixedString64Bytes[] clientsIDs)
     {
-        networkInventoryManager.RebuildLocalInventory();
+        clientsToCreate.AddRange(clientsIDs);
     }
+
+    #endregion
 }

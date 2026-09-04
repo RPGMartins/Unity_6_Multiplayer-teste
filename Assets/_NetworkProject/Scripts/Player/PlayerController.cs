@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using Unity.Collections;
 using UnityEngine;
 
@@ -18,15 +18,11 @@ public class PlayerController : MonoBehaviour, IPlayerController
     public PlayerInput PlayerInput => playerInput;
     public PlayerInteract PlayerInteract => playerInteract;
 
-    private void Awake()
-    {
-        if (NetworkConnectionChecker.CheckConnection() == false)
-        {
-            Initialize(PlayerInitializer.DEFAULT_PLAYER_ID, 0);
-        }
-    }
+    public Transform Transform => transform;
+    public FixedString64Bytes AuthenticateID { get; set; }
+    public ulong ClientID { get; set; }
 
-    public void Initialize(FixedString64Bytes playerId, ulong clientID, IIniciadorDoPlayer iniciadorDoPlayer = null)
+    public void Initialize(FixedString64Bytes playerId, ulong clientID, Action callback)
     {
         playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
 
@@ -35,21 +31,6 @@ public class PlayerController : MonoBehaviour, IPlayerController
         playerLocalInventoryController.Initialize(playerId);
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
         playerHitbox.Initilize(playerTransform);
-
-        if (iniciadorDoPlayer == null)
-        {
-            iniciadorDoPlayer = IniciadorDoPlayer.instance;
-        }
-
-        InitializeInventory(iniciadorDoPlayer, playerId);
+        callback.Invoke();
     }
-
-    private void InitializeInventory(IIniciadorDoPlayer iniciadorDoPlayer, FixedString64Bytes playerId)
-    {
-        iniciadorDoPlayer.InitializeInventoryRPC(playerId);
-    }
-
-    public Transform Transform => transform;
-    public FixedString64Bytes AuthenticateID { get; set; }
-    public ulong ClientID { get; set; }
 }
