@@ -37,7 +37,7 @@ public class PlayerController : NetworkBehaviour
         playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
         playerHitbox.Initilize(playerTransform);
 
-        PlayerInitializer.instance.InitializeInventoryRPC(playerId);
+        InventoryInitializer.instance.InitializeInventory(playerId);
 
         if (NetworkConnectionChecker.CheckConnection() == false)
         {

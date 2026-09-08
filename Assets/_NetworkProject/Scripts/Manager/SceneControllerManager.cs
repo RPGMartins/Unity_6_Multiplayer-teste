@@ -100,7 +100,7 @@ public class SceneControllerManager : NetworkBehaviour
                 }
             }
 
-            PlayerInitializer.instance.PreparePlayersToBeInitialized(playerIds.ToArray());
+            PlayerInitializer.instance.PreparePlayersToBeSpawned(playerIds.ToArray());
         }
         else if (sceneName == mainMenuSceneName)
         {
@@ -129,7 +129,7 @@ public class SceneControllerManager : NetworkBehaviour
                 playerIds.Add(playerAuthenticateID);
             }
 
-            PlayerInitializer.instance.PreparePlayersToBeInitialized(playerIds.ToArray());
+            PlayerInitializer.instance.PreparePlayersToBeSpawned(playerIds.ToArray());
         }
     }
 
