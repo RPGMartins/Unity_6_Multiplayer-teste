@@ -98,7 +98,11 @@ public class PlayerInputInitializer : NetworkBehaviour
     private void ReceivePlayerID(FixedString64Bytes playerID)
     {
         playerToInitializeList.Add(playerID);
-        ReceivePlayerIDRPC(playerID);
+
+        if (NetworkConnectionChecker.CheckConnection() == true)
+        {
+            ReceivePlayerIDRPC(playerID);
+        }
     }
 
     [Rpc(SendTo.NotMe)]

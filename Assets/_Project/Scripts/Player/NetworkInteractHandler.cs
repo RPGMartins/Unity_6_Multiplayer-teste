@@ -63,7 +63,7 @@ public class NetworkInteractHandler : NetworkBehaviour, InterfaceInteractHandler
             SendResultOfGetGroundItem(clientId, false);
         }
 
-        groundItem.CallDespawn();
+        //groundItem.CallDespawn();
         SendResultOfGetGroundItem(clientId, true);
     }
 

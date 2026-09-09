@@ -1,23 +1,78 @@
-using System;
-using UnityEngine;
+using Unity.Collections;
+using Unity.Netcode;
 
-public class GroundItem : MonoBehaviour, IInteractable
+public class GroundItem : NetworkBehaviour, IInteractable
 {
-    [SerializeField] private GameObject parentGameObject;
+    private FixedString64Bytes itemID;
+    private ulong itemIdentificationID;
     private BaseItem currentItem;
-    private Action<GroundItem> despawnAction;
+    private NetworkVariable<FixedString64Bytes> networkItemID = new NetworkVariable<FixedString64Bytes>();
+    private NetworkVariable<ulong> networkItemIdentificationID = new NetworkVariable<ulong>();
 
     public BaseItem CurrentItem => currentItem;
-    public GameObject ParentGameObject => parentGameObject;
+    public FixedString64Bytes ItemID => itemID;
+    public ulong ItemIdentificationID => itemIdentificationID;
 
-    public void Initialize(BaseItem item, Action<GroundItem> despawnAction)
+    public override void OnNetworkSpawn()
     {
-        this.currentItem = item;
-        this.despawnAction = despawnAction;
+        base.OnNetworkSpawn();
+
+        networkItemID.OnValueChanged += OnNetworkItemIDChanged;
+        networkItemIdentificationID.OnValueChanged += OnNetworkItemIdentificationIDChanged;
+
+        TryApplyNetworkData();
     }
 
-    public void CallDespawn()
+    public override void OnNetworkDespawn()
     {
-        despawnAction.Invoke(this);
+        networkItemID.OnValueChanged -= OnNetworkItemIDChanged;
+        networkItemIdentificationID.OnValueChanged -= OnNetworkItemIdentificationIDChanged;
+
+        base.OnNetworkDespawn();
+    }
+
+    public void Initialize(FixedString64Bytes itemID, bool network, ulong itemIdentificationID)
+    {
+        if (network == true)
+        {
+            networkItemIdentificationID.Value = itemIdentificationID;
+            networkItemID.Value = itemID;
+
+            return;
+        }
+
+        ApplyItemData(itemID, itemIdentificationID);
+    }
+
+    private void OnNetworkItemIDChanged(FixedString64Bytes previousValue, FixedString64Bytes newValue)
+    {
+        TryApplyNetworkData();
+    }
+
+    private void OnNetworkItemIdentificationIDChanged(ulong previousValue, ulong newValue)
+    {
+        TryApplyNetworkData();
+    }
+
+    private void TryApplyNetworkData()
+    {
+        if (networkItemID.Value.IsEmpty == true)
+        {
+            return;
+        }
+
+        ApplyItemData(networkItemID.Value, networkItemIdentificationID.Value);
+    }
+
+    private void ApplyItemData(FixedString64Bytes itemID, ulong itemIdentificationID)
+    {
+        this.itemID = itemID;
+        this.itemIdentificationID = itemIdentificationID;
+        InitializeItemFromID();
+    }
+
+    private void InitializeItemFromID()
+    {
+        currentItem = ItemDataList.Instance.GetItemById(itemID);
     }
 }

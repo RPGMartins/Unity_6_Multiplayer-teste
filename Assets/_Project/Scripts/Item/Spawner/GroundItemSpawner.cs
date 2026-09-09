@@ -1,60 +1,57 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class GroundItemSpawner : MonoBehaviour
 {
-    [SerializeField] private bool drawDebug;
-    [SerializeField] private GameObject groundItemPrefab;
-    [SerializeField] private GameObject networkGroundItemPrefab;
-
+    [SerializeField] private GroundItem groundItemPrefab;
     [SerializeField] private Vector2 rangeToSpawn;
+    [SerializeField] private bool drawDebug;
 
-    private List<GroundItem> spawnedGroundItems = new List<GroundItem>();
+    private Dictionary<ulong, GroundItem> spawnedGroundItemsDictionary = new Dictionary<ulong, GroundItem>();
 
-    public void Spawn(ItemData itemData)
+    public void Spawn(ItemData itemData, ulong itemIndentificationID)
     {
-        if (NetworkManager.Singleton == null || NetworkManager.Singleton.IsListening == false)
+        SpawnGroundItem(itemData, NetworkConnectionChecker.CheckIfHasAuthority(), itemIndentificationID);
+    }
+
+    private void SpawnGroundItem(ItemData itemData, bool network, ulong itemIdentificationID)
+    {
+        GroundItem groundItem = SpawnPrefab();
+
+        if (network == true)
         {
-            GroundItem spawnedGroundItem = SpawnGroundItem(itemData);
-            spawnedGroundItems.Add(spawnedGroundItem);
+            NetworkObject networkObject = groundItem.GetComponentInParent<NetworkObject>();
+            networkObject.Spawn(true);
         }
-        else
-        {
-            GroundItem spawnedGroundItem = NetworkSpawnGroundItem(itemData);
-            spawnedGroundItems.Add(spawnedGroundItem);
-        }
+
+        groundItem.Initialize(itemData.ItemID, network, itemIdentificationID);
+        spawnedGroundItemsDictionary.Add(itemIdentificationID, groundItem);
     }
 
-    private GroundItem SpawnGroundItem(ItemData itemData)
-    {
-        return SpawnPrefab(itemData, groundItemPrefab);
-    }
-
-    private GroundItem NetworkSpawnGroundItem(ItemData itemData)
-    {
-        GroundItem groundItem = SpawnPrefab(itemData, networkGroundItemPrefab);
-        NetworkObject networkObject = groundItem.GetComponentInParent<NetworkObject>();
-        networkObject.Spawn(true);
-
-        return groundItem;
-    }
-
-    private GroundItem SpawnPrefab(ItemData itemData, GameObject itemPrefab)
+    private GroundItem SpawnPrefab()
     {
         Vector3 spawnOffset = new Vector2(Random.Range(-rangeToSpawn.x, rangeToSpawn.x), Random.Range(-rangeToSpawn.y, rangeToSpawn.y));
-        GameObject groundItemInstance = Instantiate(itemPrefab, transform.position + spawnOffset, Quaternion.identity, transform);
-        GroundItem groundItem = groundItemInstance.GetComponentInChildren<GroundItem>();
-        groundItem.Initialize(itemData.ToBaseItem(), DespawnPrefab);
+        GroundItem groundItem = Instantiate(groundItemPrefab, transform.position + spawnOffset, Quaternion.identity, null);
 
         return groundItem;
     }
 
-    private void DespawnPrefab(GroundItem groundItem)
+    public void Despawn(ulong identificationID, bool network)
     {
-        spawnedGroundItems.Remove(groundItem);
-        Destroy(groundItem.ParentGameObject);
+        spawnedGroundItemsDictionary.Remove(identificationID, out GroundItem groundItem);
+
+        if (network == true)
+        {
+            NetworkObject networkObject = groundItem.GetComponentInParent<NetworkObject>();
+            networkObject.Despawn();
+
+            return;
+        }
+
+        Destroy(groundItem.gameObject);
     }
 
     private void OnDrawGizmos()

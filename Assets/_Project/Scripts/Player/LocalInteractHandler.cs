@@ -1,4 +1,3 @@
-using System;
 using Unity.Collections;
 using UnityEngine;
 
@@ -18,7 +17,8 @@ public class LocalInteractHandler : MonoBehaviour, InterfaceInteractHandler
             if (AddItemToInventory(groundItem) == true)
             {
                 GetGroundItemFeedBack(true);
-                groundItem.CallDespawn();
+
+                GroundItemSpawnerController.instance.DestroyItem(groundItem.ItemIdentificationID, false);
             }
 
             GetGroundItemFeedBack(false);

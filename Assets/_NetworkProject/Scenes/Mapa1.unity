@@ -262,14 +262,14 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 2039713379}
     m_Modifications:
     - target: {fileID: 1249359937234739186, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
       propertyPath: m_Name
       value: GroundItemSpawnerController
       objectReference: {fileID: 0}
-    - target: {fileID: 1249359937234739186, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_IsActive
+    - target: {fileID: 1350462724542698005, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
+      propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1350462724542698005, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
@@ -308,54 +308,16 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3853079185442539800, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -6.41
-      objectReference: {fileID: 0}
-    - target: {fileID: 4066703692916926032, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_Icon
-      value: 
-      objectReference: {fileID: 7174288486110832750, guid: 0000000000000000d000000000000000, type: 0}
-    - target: {fileID: 4066703692916926032, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_Name
-      value: ItemSpawner
-      objectReference: {fileID: 0}
-    - target: {fileID: 4472414407019643407, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 7.24
-      objectReference: {fileID: 0}
-    - target: {fileID: 5171494792903771288, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: intervalToSpawnItem
-      value: 5
-      objectReference: {fileID: 0}
-    - target: {fileID: 6186655313423159321, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -6.11
-      objectReference: {fileID: 0}
-    - target: {fileID: 7368680601825468564, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 6.15
-      objectReference: {fileID: 0}
-    - target: {fileID: 8818053573330517867, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
-      propertyPath: drawDebug
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
---- !u!114 &577750416 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5171494792903771288, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
+--- !u!4 &577750417 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1350462724542698005, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
   m_PrefabInstance: {fileID: 577750414}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ad4d6e91be914a2478937e98e314ace4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GroundItemSpawnerController
 --- !u!1 &935156778
 GameObject:
   m_ObjectHideFlags: 0
@@ -509,6 +471,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 76418ffa37bec2e469afc304d078a4f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInputManager
+  ShowTopMostFoldoutHeaderGroup: 1
   playerInputPrefab: {fileID: 4623374724179774517, guid: ae436e6d4b0480148822e6abfb39d66b, type: 3}
 --- !u!1 &1361784181
 GameObject:
@@ -845,52 +808,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1846688286
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1846688287}
-  - component: {fileID: 1846688288}
-  m_Layer: 0
-  m_Name: GroundItemSpawnerControllerNetwork
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1846688287
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1846688286}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1984590497}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1846688288
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1846688286}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 39311124b9fc16044ba803712060f986, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GroundItemSpawnerControllerNetwork
-  ShowTopMostFoldoutHeaderGroup: 1
-  groundItemSpawnerController: {fileID: 577750416}
 --- !u!1 &1864839544
 GameObject:
   m_ObjectHideFlags: 0
@@ -1122,7 +1039,6 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1846688287}
   - {fileID: 935156779}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1184,6 +1100,7 @@ Transform:
   - {fileID: 1055454867}
   - {fileID: 1889506752}
   - {fileID: 1540383571}
+  - {fileID: 577750417}
   m_Father: {fileID: 1864839546}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2020561675993358596
@@ -1256,7 +1173,6 @@ SceneRoots:
   - {fileID: 1882925075}
   - {fileID: 1984590497}
   - {fileID: 1046276666}
-  - {fileID: 577750414}
   - {fileID: 1704131313}
   - {fileID: 1811930587}
   - {fileID: 2020561675993358596}

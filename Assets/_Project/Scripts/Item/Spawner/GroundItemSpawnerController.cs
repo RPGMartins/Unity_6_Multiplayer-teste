@@ -4,21 +4,18 @@ using Random = UnityEngine.Random;
 
 public class GroundItemSpawnerController : MonoBehaviour
 {
+    public static GroundItemSpawnerController instance;
     [SerializeField] private List<ItemData> availableItems = new List<ItemData>();
-    private List<GroundItemSpawner> groundItemSpawners = new List<GroundItemSpawner>();
-
+    [SerializeField] private GroundItemSpawner groundItemSpawner;
     [SerializeField] private float intervalToSpawnItem;
+
+    private ulong itemIdentificationID = 0;
 
     private float currentTime;
 
     private void Awake()
     {
-        GroundItemSpawner[] tempGroundItemSpawners = GetComponentsInChildren<GroundItemSpawner>();
-
-        foreach (GroundItemSpawner tempGroundItemSpawner in tempGroundItemSpawners)
-        {
-            groundItemSpawners.Add(tempGroundItemSpawner);
-        }
+        instance = this;
     }
 
     private void Start()
@@ -36,11 +33,17 @@ public class GroundItemSpawnerController : MonoBehaviour
         }
 
         ResetTimer();
-        groundItemSpawners[Random.Range(0, groundItemSpawners.Count)].Spawn(availableItems[Random.Range(0, availableItems.Count)]);
+        groundItemSpawner.Spawn(availableItems[Random.Range(0, availableItems.Count)], itemIdentificationID);
+        itemIdentificationID++;
     }
 
     private void ResetTimer()
     {
         currentTime = intervalToSpawnItem;
+    }
+
+    public void DestroyItem(ulong itemIdentificationID, bool network)
+    {
+        groundItemSpawner.Despawn(itemIdentificationID, network);
     }
 }
