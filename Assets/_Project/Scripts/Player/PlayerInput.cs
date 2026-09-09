@@ -1,4 +1,6 @@
 using System;
+using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,12 +15,16 @@ public class PlayerInput : MonoBehaviour
 
     private Camera cam;
 
-    private void Awake()
+    [SerializeField] private FixedString64Bytes playerID; //TODO TIRAR DEPOIS,so pra ver
+
+    public void Initialize(FixedString64Bytes playerId)
     {
         if (cam == null)
         {
             cam = Camera.main;
         }
+
+        this.playerID = playerId;
     }
 
     private void Update()

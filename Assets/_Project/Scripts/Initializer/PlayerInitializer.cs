@@ -1,14 +1,18 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class PlayerInitializer : MonoBehaviour
+public class PlayerInitializer : NetworkBehaviour
 {
     private static string defaultPlayerID = "DefaultPlayer";
     public static string defaultFlashLightID = "FlashLight";
     public static string defaultPistolID = "Pistol";
 
     public static PlayerInitializer instance;
+
+    public event Action<FixedString64Bytes> OnPlayerInitialized;
 
     [SerializeField] private PlayerSpawner playerSpawner;
     [SerializeField] private InventoryManager inventoryManager;
@@ -60,8 +64,8 @@ public class PlayerInitializer : MonoBehaviour
             ulong clientID = 0;
             FixedString64Bytes playerID = clientsToSpawn[i];
             PlayerController playerController = SpawnPlayer(clientID, i, false);
-            playerController.Initialize(playerID, clientID);
             playerCreatedList.Add(playerController);
+            playerController.Initialize(playerID, clientID);
         }
     }
 
@@ -87,8 +91,8 @@ public class PlayerInitializer : MonoBehaviour
 
             networkInventoryManager.ServerAddPlayer(clientsToSpawn[i]);
             PlayerController playerController = SpawnPlayer(clientID, i, true);
-            playerController.InitializeRPC(playerID, clientID);
             playerCreatedList.Add(playerController);
+            playerController.InitializeRPC(playerID, clientID);
         }
     }
 
@@ -109,12 +113,32 @@ public class PlayerInitializer : MonoBehaviour
     {
         foreach (PlayerController playerController in PlayerCreatedList)
         {
-            if (playerController.AuthenticateID == playerID)
+            if (playerController.AuthenticateID.Value == playerID)
             {
                 return playerController;
             }
         }
 
         return null;
+    }
+
+    public void PlayerInitializedCallback(FixedString64Bytes playerID)
+    {
+        if (NetworkConnectionChecker.CheckConnection() == true)
+        {
+            if (NetworkConnectionChecker.CheckIfHasAuthority() == true)
+            {
+                PlayerInitialized(playerID);
+            }
+        }
+        else
+        {
+            PlayerInitialized(playerID);
+        }
+    }
+
+    private void PlayerInitialized(FixedString64Bytes playerID)
+    {
+        OnPlayerInitialized.Invoke(playerID);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
@@ -17,6 +18,19 @@ public class InventoryInitializer : NetworkBehaviour
     private void Awake()
     {
         instance = this;
+    }
+
+    private void Start()
+    {
+        PlayerInitializer.instance.OnPlayerInitialized += InitializeInventory;
+    }
+
+    private void OnDestroy()
+    {
+        if (PlayerInitializer.instance != null)
+        {
+            PlayerInitializer.instance.OnPlayerInitialized -= InitializeInventory;
+        }
     }
 
     private void Update()
@@ -75,7 +89,7 @@ public class InventoryInitializer : NetworkBehaviour
         }
     }
 
-    public void InitializeInventory(FixedString64Bytes clientsIDs)
+    private void InitializeInventory(FixedString64Bytes clientsIDs)
     {
         if (NetworkConnectionChecker.CheckIfHasAuthority() == true)
         {

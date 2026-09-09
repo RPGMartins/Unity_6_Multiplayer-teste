@@ -12,7 +12,7 @@ public class PlayerInteract : MonoBehaviour
 
     private bool initialized = false;
 
-    public void Initialize(Func<bool> interacting, ulong clientID, FixedString64Bytes playerID)
+    public void Initialize(ulong clientID, FixedString64Bytes playerID)
     {
         if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening == true)
         {
@@ -24,6 +24,10 @@ public class PlayerInteract : MonoBehaviour
         }
 
         interfaceInteractHandler.Initialize(playerID, clientID);
+    }
+
+    public void InitializeInput(Func<bool> interacting)
+    {
         this.interacting = interacting;
         initialized = true;
     }

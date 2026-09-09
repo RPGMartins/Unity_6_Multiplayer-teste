@@ -8,14 +8,12 @@ public class PlayerController : NetworkBehaviour
     [SerializeField] private PlayerMovement playerMovement;
     [SerializeField] private PlayerLocalInventoryController playerLocalInventoryController;
     [SerializeField] private PlayerAnimation playerAnimation;
-    [SerializeField] private PlayerInput playerInput;
     [SerializeField] private PlayerInteract playerInteract;
     [SerializeField] private PlayerHitbox playerHitbox;
 
     public PlayerMovement PlayerMovement => playerMovement;
     public PlayerLocalInventoryController PlayerLocalInventoryController => playerLocalInventoryController;
     public PlayerAnimation PlayerAnimation => playerAnimation;
-    public PlayerInput PlayerInput => playerInput;
     public PlayerInteract PlayerInteract => playerInteract;
 
     public Transform Transform => transform;
@@ -29,20 +27,27 @@ public class PlayerController : NetworkBehaviour
 
     public void Initialize(FixedString64Bytes playerId, ulong clientID)
     {
-        playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
+        AuthenticateID = playerId;
+        ClientID = clientID;
 
-        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerLocalInventoryController.GetCurrentWeaponID, playerInput.Shooting);
         playerAnimation.Initialize(playerLocalInventoryController);
         playerLocalInventoryController.Initialize(playerId);
-        playerInteract.Initialize(playerInput.Interacting, clientID, playerId);
         playerHitbox.Initilize(playerTransform);
+        playerInteract.Initialize(clientID, playerId);
 
-        InventoryInitializer.instance.InitializeInventory(playerId);
+        PlayerInitializer.instance.PlayerInitializedCallback(playerId);
 
         if (NetworkConnectionChecker.CheckConnection() == false)
         {
             EnableScripts(true);
         }
+    }
+
+    public void InitializePlayerInput(PlayerInput playerInput)
+    {
+        playerInput.onSlotPressed += playerLocalInventoryController.EquipSlotWeapon;
+        playerMovement.Initialize(playerInput.GetMovement, playerInput.GetMousePosition, playerLocalInventoryController.GetCurrentWeaponID, playerInput.Shooting);
+        playerInteract.InitializeInput(playerInput.Interacting);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
@@ -53,7 +58,6 @@ public class PlayerController : NetworkBehaviour
 
     private void EnableScripts(bool value)
     {
-        playerInput.enabled = value;
         playerInteract.enabled = value;
         playerAnimation.enabled = value;
         playerMovement.EnableDisableAim(value);
