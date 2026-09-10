@@ -8,6 +8,7 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
     [SerializeField] private List<InventoryData> playerInventoryList = new List<InventoryData>();
     [SerializeField] private List<SerializedInventoryData> playerInventoryListSerialized = new List<SerializedInventoryData>();
     public event Action<FixedString64Bytes> OnInventoryChanged;
+    public event Action<FixedString64Bytes, WeaponItem> onPlayerEquippedSlotChanged;
 
     public static InventoryManager Instance { get; private set; }
 
@@ -23,7 +24,7 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
             return false;
         }
 
-        InventoryData inventoryData = new InventoryData(playerID, baseItem.ItemID);
+        InventoryData inventoryData = new InventoryData(playerID, baseItem.ItemID, false);
         playerInventoryList.Add(inventoryData);
         playerInventoryListSerialized.Add(new SerializedInventoryData(inventoryData));
         OnInventoryChanged?.Invoke(playerID);
@@ -90,7 +91,7 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         return ItemDataList.Instance.GetItemById(itemID);
     }
 
-    private bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData outInventoryData)
+    public bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData outInventoryData)
     {
         outInventoryData = default;
 
@@ -117,5 +118,23 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         //Verificar mas coisas
 
         return true;
+    }
+
+    public void EquipItem(InventoryData valueToUpdate)
+    {
+        for (int i = 0; i < playerInventoryList.Count; i++)
+        {
+            if (playerInventoryList[i].PlayerID != valueToUpdate.PlayerID)
+            {
+                continue;
+            }
+
+            if (playerInventoryList[i].ItemID != valueToUpdate.ItemID)
+            {
+                continue;
+            }
+
+            playerInventoryList[i] = valueToUpdate;
+        }
     }
 }

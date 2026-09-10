@@ -7,9 +7,12 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
 {
     public static NetworkInventoryManager Instance { get; private set; }
 
+    [SerializeField] private InventoryManager inventoryManager;
+
     private NetworkList<InventoryData> networkItems;
     private NetworkList<FixedString64Bytes> networkPlayers;
 
+    public event Action<FixedString64Bytes, WeaponItem> onPlayerEquippedSlotChanged;
     public event Action<FixedString64Bytes> OnInventoryChanged;
 
     private void Awake()
@@ -45,6 +48,11 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
                 RemoveItemLocally(change.Value);
 
                 break;
+
+            case NetworkListEvent<InventoryData>.EventType.Value:
+                UpdateItemLocally(change.Value);
+
+                break;
         }
     }
 
@@ -75,7 +83,7 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
             return false;
         }
 
-        InventoryData data = new InventoryData(playerID, baseItem.ItemID);
+        InventoryData data = new InventoryData(playerID, baseItem.ItemID, false);
 
         if (networkItems.Contains(data) == true)
         {
@@ -96,7 +104,7 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
             return;
         }
 
-        InventoryManager.Instance.ServerAddItem(baseItem, data.PlayerID);
+        inventoryManager.ServerAddItem(baseItem, data.PlayerID);
     }
 
     private void RemoveItemLocally(InventoryData data)
@@ -108,12 +116,17 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
             return;
         }
 
-        InventoryManager.Instance.RemoveItemToPlayer(baseItem, data.PlayerID);
+        inventoryManager.RemoveItemToPlayer(baseItem, data.PlayerID);
+    }
+
+    private void UpdateItemLocally(InventoryData changeValue)
+    {
+        inventoryManager.EquipItem(changeValue);
     }
 
     public void RebuildLocalInventory()
     {
-        InventoryManager.Instance.ResetVariables();
+        inventoryManager.ResetVariables();
 
         foreach (InventoryData networkItem in networkItems)
         {
@@ -121,15 +134,21 @@ public class NetworkInventoryManager : NetworkBehaviour, IInventoryManager
         }
     }
 
-    [SerializeField] private bool testeResetInventory;
-
-    private void Update()
+    public void EquipItem(InventoryData valueToUpdate)
     {
-        if (testeResetInventory == true)
+        for (int i = 0; i < networkItems.Count; i++)
         {
-            testeResetInventory = false;
+            if (networkItems[i].PlayerID != valueToUpdate.PlayerID)
+            {
+                continue;
+            }
 
-            RebuildLocalInventory();
+            if (networkItems[i].ItemID != valueToUpdate.ItemID)
+            {
+                continue;
+            }
+
+            networkItems[i] = valueToUpdate;
         }
     }
 }

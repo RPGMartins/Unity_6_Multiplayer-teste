@@ -138,10 +138,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   playerTransform: {fileID: 5708528607155727824}
   playerMovement: {fileID: 2455504630607416599}
-  playerLocalInventoryController: {fileID: 4585420645759528428}
   playerAnimation: {fileID: 6486961356269291751}
   playerInteract: {fileID: 1274343207151848753}
   playerHitbox: {fileID: 7998341225210911627}
+  playerCombat: {fileID: 511690320263336323}
 --- !u!1 &4138589907356162349
 GameObject:
   m_ObjectHideFlags: 0
@@ -270,6 +270,52 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!1 &4307306724335679422
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 178918959438982735}
+  - component: {fileID: 511690320263336323}
+  m_Layer: 0
+  m_Name: PlayerCombat
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &178918959438982735
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4307306724335679422}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5708528607155727824}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &511690320263336323
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4307306724335679422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb0680e3c9b39bf4f84b7090fc747ac5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  aimTarget: {fileID: 3155234431063297729}
+  parentTransform: {fileID: 5708528607155727824}
 --- !u!1 &4354590674806535791
 GameObject:
   m_ObjectHideFlags: 0
@@ -361,50 +407,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!1 &5052835907395714309
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 515569044652964964}
-  - component: {fileID: 4585420645759528428}
-  m_Layer: 0
-  m_Name: PlayerLocalInventoryController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &515569044652964964
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5052835907395714309}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 5708528607155727824}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4585420645759528428
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5052835907395714309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81133e347bc2f4645a58edfbb7fe6a15, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInventory
 --- !u!1 &5084280416591137055
 GameObject:
   m_ObjectHideFlags: 0
@@ -440,12 +442,12 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6303849186613985425}
-  - {fileID: 515569044652964964}
   - {fileID: 2487970026533687423}
   - {fileID: 5581256456237576609}
-  - {fileID: 3155234431063297729}
   - {fileID: 3624248978169682393}
   - {fileID: 5185646983180052507}
+  - {fileID: 178918959438982735}
+  - {fileID: 3155234431063297729}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!50 &6549210817986787832
@@ -487,7 +489,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3790947227
+  GlobalObjectIdHash: 3480929947
   InScenePlacedSourceGlobalObjectIdHash: 3132556667
   DeferredDespawnTick: 0
   Ownership: 1
@@ -629,7 +631,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
   transformToMove: {fileID: 5708528607155727824}
-  target: {fileID: 3155234431063297729}
   velocity: 5
 --- !u!1 &8514174806591351130
 GameObject:

@@ -15,7 +15,6 @@ public class PlayerInitializer : NetworkBehaviour
     public event Action<FixedString64Bytes> OnPlayerInitialized;
 
     [SerializeField] private PlayerSpawner playerSpawner;
-    [SerializeField] private InventoryManager inventoryManager;
     [SerializeField] private NetworkInventoryManager networkInventoryManager;
 
     private List<FixedString64Bytes> clientsToSpawn = new List<FixedString64Bytes>();
@@ -98,7 +97,7 @@ public class PlayerInitializer : NetworkBehaviour
 
     private PlayerController SpawnPlayer(ulong clientID, int index, bool network)
     {
-        PlayerController playerController = playerSpawner.SpawnPlayer(inventoryManager, clientID, network);
+        PlayerController playerController = playerSpawner.SpawnPlayer(clientID, network);
         clientsToSpawn.RemoveAt(index);
 
         return playerController;

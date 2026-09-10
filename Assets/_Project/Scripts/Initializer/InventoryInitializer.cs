@@ -68,17 +68,6 @@ public class InventoryInitializer : NetworkBehaviour
         InitializeDefaultInventoryToPlayer(interfaceInventoryManager, clientsInventoryInitialize);
         clientsInventoryInitialized.Add(clientsInventoryToInitialize[index]);
         clientsInventoryToInitialize.RemoveAt(index);
-        inventoryManager.OnInventoryChanged += InventoryChanged;
-    }
-
-    private void InventoryChanged(FixedString64Bytes playerID)
-    {
-        PlayerController playerController = PlayerInitializer.instance.GetPlayerControllerByPlayerID(playerID);
-
-        if (playerController != null)
-        {
-            playerController.PlayerLocalInventoryController.onLocalInventoryChanged?.Invoke();
-        }
     }
 
     private void InitializeDefaultInventoryToPlayer(IInventoryManager inventoryManager, FixedString64Bytes playerID)

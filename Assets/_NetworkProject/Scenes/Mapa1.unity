@@ -300,6 +300,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ec0bb57bdc494f419d1765146e20ccb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractManager
+  ShowTopMostFoldoutHeaderGroup: 1
   groundItemSpawnerController: {fileID: 577750416}
 --- !u!1001 &577750414
 PrefabInstance:
@@ -500,7 +501,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::IniciadorDoPlayer
   ShowTopMostFoldoutHeaderGroup: 1
   playerSpawner: {fileID: 1055454875}
-  inventoryManager: {fileID: 1540383573}
   networkInventoryManager: {fileID: 1540383572}
 --- !u!114 &1055454875
 MonoBehaviour:
@@ -666,7 +666,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetworkInventoryManager
   ShowTopMostFoldoutHeaderGroup: 1
-  testeResetInventory: 0
+  inventoryManager: {fileID: 1540383573}
 --- !u!114 &1540383573
 MonoBehaviour:
   m_ObjectHideFlags: 0

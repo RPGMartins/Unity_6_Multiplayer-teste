@@ -31,9 +31,11 @@ public class WeaponManager : MonoBehaviour
         }
     }
 
-    public void Shoot(Vector3 originPosition, Vector3 targetPosition, string weaponID)
+    public void Shoot(Vector3 originPosition, Vector3 targetPosition)
     {
         //Validar arma/cooldown etc
+
+        string weaponID = "";
 
         if (isConnected == true)
         {
