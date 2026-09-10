@@ -90,20 +90,32 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         return ItemDataList.Instance.GetItemById(itemID);
     }
 
-    private bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData playerInventory)
+    private bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData outInventoryData)
     {
-        playerInventory = default;
+        outInventoryData = default;
 
         foreach (InventoryData inventoryData in playerInventoryList)
         {
             if (playerID == inventoryData.PlayerID && itemID == inventoryData.ItemID)
             {
-                playerInventory = inventoryData;
+                outInventoryData = inventoryData;
 
                 return true;
             }
         }
 
         return false;
+    }
+
+    public bool PlayerCanAddItem(FixedString64Bytes playerID, FixedString64Bytes itemID)
+    {
+        if (PlayerHasItem(playerID, itemID, out InventoryData inventoryData) == true)
+        {
+            return false;
+        }
+
+        //Verificar mas coisas
+
+        return true;
     }
 }

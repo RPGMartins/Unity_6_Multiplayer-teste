@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -10,14 +8,12 @@ public class GroundItemSpawner : MonoBehaviour
     [SerializeField] private Vector2 rangeToSpawn;
     [SerializeField] private bool drawDebug;
 
-    private Dictionary<ulong, GroundItem> spawnedGroundItemsDictionary = new Dictionary<ulong, GroundItem>();
-
-    public void Spawn(ItemData itemData, ulong itemIndentificationID)
+    public GroundItem Spawn(ItemData itemData, ulong itemIdentificationID, bool network)
     {
-        SpawnGroundItem(itemData, NetworkConnectionChecker.CheckIfHasAuthority(), itemIndentificationID);
+        return SpawnGroundItem(itemData, network, itemIdentificationID);
     }
 
-    private void SpawnGroundItem(ItemData itemData, bool network, ulong itemIdentificationID)
+    private GroundItem SpawnGroundItem(ItemData itemData, bool network, ulong itemIdentificationID)
     {
         GroundItem groundItem = SpawnPrefab();
 
@@ -28,7 +24,8 @@ public class GroundItemSpawner : MonoBehaviour
         }
 
         groundItem.Initialize(itemData.ItemID, network, itemIdentificationID);
-        spawnedGroundItemsDictionary.Add(itemIdentificationID, groundItem);
+
+        return groundItem;
     }
 
     private GroundItem SpawnPrefab()
@@ -39,10 +36,8 @@ public class GroundItemSpawner : MonoBehaviour
         return groundItem;
     }
 
-    public void Despawn(ulong identificationID, bool network)
+    public void Despawn(GroundItem groundItem, bool network)
     {
-        spawnedGroundItemsDictionary.Remove(identificationID, out GroundItem groundItem);
-
         if (network == true)
         {
             NetworkObject networkObject = groundItem.GetComponentInParent<NetworkObject>();

@@ -11,7 +11,11 @@ public class GroundItem : NetworkBehaviour, IInteractable
 
     public BaseItem CurrentItem => currentItem;
     public FixedString64Bytes ItemID => itemID;
-    public ulong ItemIdentificationID => itemIdentificationID;
+    public ulong ItemIdentificationID
+    {
+        get => itemIdentificationID;
+        set => itemIdentificationID = value;
+    }
 
     public override void OnNetworkSpawn()
     {

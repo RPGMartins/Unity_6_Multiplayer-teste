@@ -256,6 +256,51 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &257633462
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 257633463}
+  - component: {fileID: 257633464}
+  m_Layer: 0
+  m_Name: InteractManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &257633463
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 257633462}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2039713379}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &257633464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 257633462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ec0bb57bdc494f419d1765146e20ccb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InteractManager
+  groundItemSpawnerController: {fileID: 577750416}
 --- !u!1001 &577750414
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -313,6 +358,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
+--- !u!114 &577750416 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5171494792903771288, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
+  m_PrefabInstance: {fileID: 577750414}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad4d6e91be914a2478937e98e314ace4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GroundItemSpawnerController
 --- !u!4 &577750417 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1350462724542698005, guid: a11ae77c5d77d2740bf572b85c1dc611, type: 3}
@@ -1100,6 +1156,7 @@ Transform:
   - {fileID: 1055454867}
   - {fileID: 1889506752}
   - {fileID: 1540383571}
+  - {fileID: 257633463}
   - {fileID: 577750417}
   m_Father: {fileID: 1864839546}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

@@ -1,29 +1,21 @@
 using System;
 using Unity.Collections;
-using Unity.Netcode;
 using UnityEngine;
 
 public class PlayerInteract : MonoBehaviour
 {
-    private InterfaceInteractHandler interfaceInteractHandler;
     private IInteractable currentInteractable;
 
     private Func<bool> interacting;
 
     private bool initialized = false;
+    private FixedString64Bytes playerID;
+    private ulong clientID;
 
     public void Initialize(ulong clientID, FixedString64Bytes playerID)
     {
-        if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening == true)
-        {
-            interfaceInteractHandler = GetComponentInChildren<NetworkInteractHandler>();
-        }
-        else
-        {
-            interfaceInteractHandler = GetComponentInChildren<LocalInteractHandler>();
-        }
-
-        interfaceInteractHandler.Initialize(playerID, clientID);
+        this.playerID = playerID;
+        this.clientID = clientID;
     }
 
     public void InitializeInput(Func<bool> interacting)
@@ -49,7 +41,19 @@ public class PlayerInteract : MonoBehaviour
             return;
         }
 
-        interfaceInteractHandler.Interact(currentInteractable);
+        Interact();
+    }
+
+    private void Interact()
+    {
+        if (currentInteractable is GroundItem groundItem)
+        {
+            InteractManager.instance.TryToInteractWithGroundItem(groundItem.ItemIdentificationID, playerID, clientID);
+        }
+        else
+        {
+            currentInteractable.Interact();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
