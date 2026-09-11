@@ -15,7 +15,7 @@ public class PlayerInitializer : NetworkBehaviour
     public event Action<FixedString64Bytes> OnPlayerInitialized;
 
     [SerializeField] private PlayerSpawner playerSpawner;
-    [SerializeField] private NetworkInventoryManager networkInventoryManager;
+    [SerializeField] private InventoryManager inventoryManager;
 
     private List<FixedString64Bytes> clientsToSpawn = new List<FixedString64Bytes>();
     private List<PlayerController> playerCreatedList = new List<PlayerController>();
@@ -88,7 +88,7 @@ public class PlayerInitializer : NetworkBehaviour
                 break;
             }
 
-            networkInventoryManager.ServerAddPlayer(clientsToSpawn[i]);
+            inventoryManager.ServerAddPlayer(clientsToSpawn[i]);
             PlayerController playerController = SpawnPlayer(clientID, i, true);
             playerCreatedList.Add(playerController);
             playerController.InitializeRPC(playerID, clientID);

@@ -1,3 +1,4 @@
+using Unity.Collections;
 using UnityEngine;
 
 public class WeaponManager : MonoBehaviour
@@ -31,11 +32,18 @@ public class WeaponManager : MonoBehaviour
         }
     }
 
-    public void Shoot(Vector3 originPosition, Vector3 targetPosition)
+    public void Shoot(FixedString64Bytes playerID, Vector3 originPosition, Vector3 targetPosition)
     {
         //Validar arma/cooldown etc
 
-        string weaponID = "";
+        FixedString64Bytes weaponID = InventoryManager.Instance.GetCurrentPlayerEquipedItem(playerID);
+
+        if (weaponID.IsEmpty == true)
+        {
+            Debug.LogWarning("Tentando atirar sem ter arma equipada");
+
+            return;
+        }
 
         if (isConnected == true)
         {

@@ -4,9 +4,9 @@ public class PlayerAnimation : MonoBehaviour
 {
     [SerializeField] private Animator animator;
 
-    public void ChangeWeaponAnimation(WeaponItem weaponItem)
+    public void ChangeWeaponAnimation(WeaponTypeEnum weaponTypeEnum)
     {
-        switch (weaponItem.WeaponTypeEnum)
+        switch (weaponTypeEnum)
         {
             case WeaponTypeEnum.Flashlight:
                 animator.Play("IdleFlashlight");

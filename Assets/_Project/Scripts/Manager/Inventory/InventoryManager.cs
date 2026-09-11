@@ -1,63 +1,245 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class InventoryManager : MonoBehaviour, IInventoryManager
+public class InventoryManager : NetworkBehaviour
 {
-    [SerializeField] private List<InventoryData> playerInventoryList = new List<InventoryData>();
-    [SerializeField] private List<SerializedInventoryData> playerInventoryListSerialized = new List<SerializedInventoryData>();
-    public event Action<FixedString64Bytes> OnInventoryChanged;
-    public event Action<FixedString64Bytes, WeaponItem> onPlayerEquippedSlotChanged;
-
     public static InventoryManager Instance { get; private set; }
 
-    public void Awake()
+    [SerializeField] private List<InventoryData> playerInventoryList = new List<InventoryData>();
+    [SerializeField] private List<SerializedInventoryData> playerInventoryListSerialized = new List<SerializedInventoryData>();
+
+    private NetworkList<InventoryData> networkItems;
+    private NetworkList<FixedString64Bytes> networkPlayers;
+
+    public event Action<FixedString64Bytes, FixedString64Bytes> onPlayerEquippedSlotChanged;
+    public event Action<FixedString64Bytes> OnInventoryChanged;
+
+    private void Awake()
     {
         Instance = this;
+
+        networkItems = new NetworkList<InventoryData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+        networkPlayers = new NetworkList<FixedString64Bytes>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     }
 
-    public bool ServerAddItem(BaseItem baseItem, FixedString64Bytes playerID)
+    public override void OnNetworkSpawn()
     {
+        networkItems.OnListChanged += OnNetworkListChanged;
+
+        RebuildLocalInventory();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        networkItems.OnListChanged -= OnNetworkListChanged;
+    }
+
+    private void OnNetworkListChanged(NetworkListEvent<InventoryData> change)
+    {
+        switch (change.Type)
+        {
+            case NetworkListEvent<InventoryData>.EventType.Add:
+                TryAddItemLocally(change.Value);
+
+                break;
+
+            case NetworkListEvent<InventoryData>.EventType.Value:
+                TryEquipItemLocal(change.Value);
+
+                break;
+        }
+    }
+
+    public void ServerAddPlayer(FixedString64Bytes playerID)
+    {
+        if (IsServer == false)
+        {
+            return;
+        }
+
+        if (networkPlayers.Contains(playerID) == true)
+        {
+            return;
+        }
+
+        networkPlayers.Add(playerID);
+    }
+
+    #region TryAddItem
+
+    public void TryAddItem(BaseItem baseItem, FixedString64Bytes playerID)
+    {
+        InventoryData data = new InventoryData(playerID, baseItem.ItemID, false);
+
+        if (NetworkConnectionChecker.CheckConnection() == false)
+        {
+            TryAddItemLocally(data);
+
+            return;
+        }
+
+        if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
+        {
+            return;
+        }
+
+        TryAddItemNetwork(data);
+    }
+
+    private void TryAddItemNetwork(InventoryData data)
+    {
+        if (networkPlayers.Contains(data.PlayerID) == false)
+        {
+            return;
+        }
+
+        if (networkItems.Contains(data) == true)
+        {
+            return;
+        }
+
+        networkItems.Add(data);
+    }
+
+    private void TryAddItemLocally(InventoryData data)
+    {
+        BaseItem baseItem = ItemDataList.Instance.GetItemById(data.ItemID);
+
+        if (baseItem == null)
+        {
+            return;
+        }
+
+        FixedString64Bytes playerID = data.PlayerID;
+
         if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)
         {
-            return false;
+            return;
         }
 
         InventoryData inventoryData = new InventoryData(playerID, baseItem.ItemID, false);
         playerInventoryList.Add(inventoryData);
         playerInventoryListSerialized.Add(new SerializedInventoryData(inventoryData));
         OnInventoryChanged?.Invoke(playerID);
-
-        return true;
     }
 
-    public void RemoveItemToPlayer(BaseItem baseItem, FixedString64Bytes playerID)
+    #endregion
+
+    #region TryEquipItem
+
+    public void TryEquipItem(InventoryData data)
     {
-        if (PlayerHasItem(playerID, baseItem.ItemID, out InventoryData inventoryData) == false)
+        if (NetworkConnectionChecker.CheckConnection() == false)
+        {
+            TryEquipItemLocal(data);
+
+            return;
+        }
+
+        if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
         {
             return;
         }
 
-        playerInventoryList.Remove(inventoryData);
+        TryEquipItemNetwork(data);
+    }
 
-        foreach (SerializedInventoryData serializedInventoryData in playerInventoryListSerialized)
+    private void TryEquipItemNetwork(InventoryData inventoryData)
+    {
+        for (int i = 0; i < networkItems.Count; i++)
         {
-            if (serializedInventoryData.PlayerID == inventoryData.PlayerID.Value && serializedInventoryData.ItemID == inventoryData.ItemID.Value)
+            if (networkItems[i].PlayerID != inventoryData.PlayerID)
             {
-                playerInventoryListSerialized.Remove(serializedInventoryData);
+                continue;
+            }
 
-                break;
+            if (networkItems[i].ItemID != inventoryData.ItemID)
+            {
+                if (networkItems[i].Equipped == true)
+                {
+                    networkItems[i] = new InventoryData(networkItems[i].PlayerID, networkItems[i].ItemID, false);
+                }
+
+                continue;
+            }
+
+            networkItems[i] = inventoryData;
+        }
+    }
+
+    private void TryEquipItemLocal(InventoryData inventoryData)
+    {
+        for (int i = 0; i < playerInventoryList.Count; i++)
+        {
+            if (playerInventoryList[i].PlayerID != inventoryData.PlayerID)
+            {
+                continue;
+            }
+
+            if (playerInventoryList[i].ItemID != inventoryData.ItemID)
+            {
+                if (playerInventoryList[i].Equipped == true)
+                {
+                    InventoryData temp = new InventoryData(playerInventoryList[i].PlayerID, playerInventoryList[i].ItemID, false);
+
+                    playerInventoryList[i] = temp;
+                    playerInventoryListSerialized[i] = new SerializedInventoryData(temp);
+                }
+
+                continue;
+            }
+
+            playerInventoryList[i] = inventoryData;
+            playerInventoryListSerialized[i] = new SerializedInventoryData(inventoryData);
+            onPlayerEquippedSlotChanged?.Invoke(inventoryData.PlayerID, inventoryData.ItemID);
+        }
+    }
+
+    #endregion
+
+    #region Utils
+
+    public FixedString64Bytes GetCurrentPlayerEquipedItem(FixedString64Bytes playerID)
+    {
+        foreach (InventoryData playerInventory in playerInventoryList)
+        {
+            if (playerInventory.PlayerID == playerID && playerInventory.Equipped == true)
+            {
+                return playerInventory.ItemID;
             }
         }
 
-        OnInventoryChanged?.Invoke(playerID);
+        return default;
     }
 
-    public void ResetVariables()
+    private bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData outInventoryData)
     {
-        playerInventoryList.Clear();
-        playerInventoryListSerialized.Clear();
+        outInventoryData = default;
+
+        foreach (InventoryData inventoryData in playerInventoryList)
+        {
+            if (playerID == inventoryData.PlayerID && itemID == inventoryData.ItemID)
+            {
+                outInventoryData = inventoryData;
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool PlayerCanAddItem(FixedString64Bytes playerID, FixedString64Bytes itemID)
+    {
+        if (PlayerHasItem(playerID, itemID, out InventoryData _) == true)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     public BaseItem GetPlayerItemBySlot(FixedString64Bytes playerID, int slotIndex)
@@ -91,50 +273,16 @@ public class InventoryManager : MonoBehaviour, IInventoryManager
         return ItemDataList.Instance.GetItemById(itemID);
     }
 
-    public bool PlayerHasItem(FixedString64Bytes playerID, FixedString64Bytes itemID, out InventoryData outInventoryData)
+    public void RebuildLocalInventory()
     {
-        outInventoryData = default;
+        playerInventoryList.Clear();
+        playerInventoryListSerialized.Clear();
 
-        foreach (InventoryData inventoryData in playerInventoryList)
+        foreach (InventoryData networkItem in networkItems)
         {
-            if (playerID == inventoryData.PlayerID && itemID == inventoryData.ItemID)
-            {
-                outInventoryData = inventoryData;
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public bool PlayerCanAddItem(FixedString64Bytes playerID, FixedString64Bytes itemID)
-    {
-        if (PlayerHasItem(playerID, itemID, out InventoryData inventoryData) == true)
-        {
-            return false;
-        }
-
-        //Verificar mas coisas
-
-        return true;
-    }
-
-    public void EquipItem(InventoryData valueToUpdate)
-    {
-        for (int i = 0; i < playerInventoryList.Count; i++)
-        {
-            if (playerInventoryList[i].PlayerID != valueToUpdate.PlayerID)
-            {
-                continue;
-            }
-
-            if (playerInventoryList[i].ItemID != valueToUpdate.ItemID)
-            {
-                continue;
-            }
-
-            playerInventoryList[i] = valueToUpdate;
+            TryAddItemLocally(networkItem);
         }
     }
+
+    #endregion
 }

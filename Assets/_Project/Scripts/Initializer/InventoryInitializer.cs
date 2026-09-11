@@ -9,7 +9,6 @@ public class InventoryInitializer : NetworkBehaviour
     public static InventoryInitializer instance;
 
     [SerializeField] private InventoryManager inventoryManager;
-    [SerializeField] private NetworkInventoryManager networkInventoryManager;
     [SerializeField] private List<WeaponItemData> weaponsToAddToPlayerWhenEnter;
 
     private List<FixedString64Bytes> clientsInventoryToInitialize = new List<FixedString64Bytes>();
@@ -37,45 +36,47 @@ public class InventoryInitializer : NetworkBehaviour
     {
         if (NetworkConnectionChecker.CheckIfHasAuthority() == true)
         {
-            InitializeInventoryOnline();
+            InitializeInventoryNetwork();
         }
         else
         {
-            InitializeInventoryOffline();
+            InitializeInventoryLocal();
         }
     }
 
-    private void InitializeInventoryOffline()
+    private void InitializeInventoryLocal()
     {
         for (int i = clientsInventoryToInitialize.Count - 1; i >= 0; i--)
         {
-            InitializeInventory(i, inventoryManager);
+            InitializeInventory(i);
         }
     }
 
-    private void InitializeInventoryOnline()
+    private void InitializeInventoryNetwork()
     {
         for (int i = clientsInventoryToInitialize.Count - 1; i >= 0; i--)
         {
-            InitializeInventory(i, networkInventoryManager);
+            InitializeInventory(i);
             RebuildLocalInventoryRPC();
         }
     }
 
-    private void InitializeInventory(int index, IInventoryManager interfaceInventoryManager)
+    private void InitializeInventory(int index)
     {
         FixedString64Bytes clientsInventoryInitialize = clientsInventoryToInitialize[index];
-        InitializeDefaultInventoryToPlayer(interfaceInventoryManager, clientsInventoryInitialize);
+        InitializeDefaultInventoryToPlayer(inventoryManager, clientsInventoryInitialize);
         clientsInventoryInitialized.Add(clientsInventoryToInitialize[index]);
         clientsInventoryToInitialize.RemoveAt(index);
     }
 
-    private void InitializeDefaultInventoryToPlayer(IInventoryManager inventoryManager, FixedString64Bytes playerID)
+    private void InitializeDefaultInventoryToPlayer(InventoryManager inventoryManager, FixedString64Bytes playerID)
     {
         foreach (WeaponItemData weaponItemData in weaponsToAddToPlayerWhenEnter)
         {
-            inventoryManager.ServerAddItem(weaponItemData.ToBaseItem(), playerID);
+            inventoryManager.TryAddItem(weaponItemData.ToBaseItem(), playerID);
         }
+
+        inventoryManager.TryEquipItem(new InventoryData(playerID, weaponsToAddToPlayerWhenEnter[0].ItemID, true));
     }
 
     private void InitializeInventory(FixedString64Bytes clientsIDs)
@@ -101,7 +102,7 @@ public class InventoryInitializer : NetworkBehaviour
     [Rpc(SendTo.NotMe)]
     private void RebuildLocalInventoryRPC()
     {
-        networkInventoryManager.RebuildLocalInventory();
+        inventoryManager.RebuildLocalInventory();
     }
 
     #endregion

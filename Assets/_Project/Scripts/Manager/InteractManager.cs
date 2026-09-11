@@ -70,14 +70,7 @@ public class InteractManager : NetworkBehaviour
 
     private void AddItemToPlayer(FixedString64Bytes playerID, BaseItem baseItem)
     {
-        if (NetworkConnectionChecker.CheckConnection() == true)
-        {
-            NetworkInventoryManager.Instance.ServerAddItem(baseItem, playerID);
-        }
-        else
-        {
-            InventoryManager.Instance.ServerAddItem(baseItem, playerID);
-        }
+        InventoryManager.Instance.TryAddItem(baseItem, playerID);
     }
 
     private void HandleItemCallback(bool success, ulong clientID)

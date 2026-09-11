@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using UnityEngine;
 
 public class PlayerCombat : MonoBehaviour
@@ -8,9 +9,11 @@ public class PlayerCombat : MonoBehaviour
 
     private Func<Vector3> mouseMovementAction;
     private Func<bool> shootingAction;
+    private FixedString64Bytes playerID;
 
-    public void Initialize(Func<Vector3> mouseMovementVector, Func<bool> shooting)
+    public void Initialize(FixedString64Bytes playerID, Func<Vector3> mouseMovementVector, Func<bool> shooting)
     {
+        this.playerID = playerID;
         this.shootingAction = shooting;
         this.mouseMovementAction = mouseMovementVector;
     }
@@ -21,13 +24,13 @@ public class PlayerCombat : MonoBehaviour
 
         if (shootingAction.Invoke() == true)
         {
-            WeaponManager.Instance.Shoot(GetWeaponShootingOrigin(), aimTarget.position);
+            WeaponManager.Instance.Shoot(playerID, GetWeaponShootingOrigin(), aimTarget.position);
         }
     }
 
     private Vector2 GetWeaponShootingOrigin()
     {
-        return Vector2.zero;
+        return parentTransform.position;
     }
 
     public float GetAngleToRotate()

@@ -22,7 +22,7 @@ public class PlayerController : NetworkBehaviour
     public FixedString64Bytes AuthenticateID { get; set; }
     public ulong ClientID { get; set; }
 
-    private Action<WeaponItem> onPlayerEquippedWeaponChanged;
+    private Action<WeaponTypeEnum> onPlayerEquippedWeaponChanged;
 
     public override void OnNetworkSpawn()
     {
@@ -71,7 +71,7 @@ public class PlayerController : NetworkBehaviour
         onPlayerEquippedWeaponChanged += playerAnimation.ChangeWeaponAnimation;
 
         playerMovement.Initialize(playerInput.GetMovement, playerCombat.GetAngleToRotate);
-        playerCombat.Initialize(playerInput.GetMousePosition, playerInput.Shooting);
+        playerCombat.Initialize(AuthenticateID, playerInput.GetMousePosition, playerInput.Shooting);
         playerInteract.InitializeInput(playerInput.Interacting);
     }
 
@@ -84,26 +84,18 @@ public class PlayerController : NetworkBehaviour
             return;
         }
 
-        InventoryData inventoryData = new InventoryData(AuthenticateID, baseItem.ItemID, true);
-
-        if (NetworkConnectionChecker.CheckConnection() == false)
-        {
-            InventoryManager.Instance.EquipItem(inventoryData);
-        }
-        else
-        {
-            NetworkInventoryManager.Instance.EquipItem(inventoryData);
-        }
+        InventoryManager.Instance.TryEquipItem(new InventoryData(AuthenticateID, baseItem.ItemID, true));
     }
 
-    private void PlayerEquippedSlotChanged(FixedString64Bytes playerID, WeaponItem weaponItem)
+    private void PlayerEquippedSlotChanged(FixedString64Bytes playerID, FixedString64Bytes weaponID)
     {
         if (AuthenticateID != playerID)
         {
             return;
         }
 
-        onPlayerEquippedWeaponChanged?.Invoke(weaponItem);
+        WeaponItem weaponItem = ItemDataList.Instance.GetItemById(weaponID) as WeaponItem;
+        onPlayerEquippedWeaponChanged?.Invoke(weaponItem.WeaponTypeEnum);
     }
 
     [Rpc(SendTo.ClientsAndHost)]
