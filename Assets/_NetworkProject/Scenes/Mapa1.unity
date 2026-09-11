@@ -867,7 +867,7 @@ MonoBehaviour:
     velocity: 7
     damage: 3
   - weaponID: Rifle
-    projectileType: 0
+    projectileType: 1
     velocity: 10
     damage: 5
 --- !u!1001 &2020561675993358596

@@ -68,7 +68,7 @@ public class ProjectileManager : NetworkBehaviour
     {
         if (NetworkConnectionChecker.CheckConnection() == false)
         {
-            CreateShoot(originPosition, targetPosition, rotation, weaponID);
+            ShootLocal(originPosition, targetPosition, rotation, weaponID);
         }
         else
         {
@@ -83,15 +83,20 @@ public class ProjectileManager : NetworkBehaviour
         }
     }
 
-    [Rpc(SendTo.Server)]
-    private void ShootRPC(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    private void ShootLocal(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        ShootServer(originPosition, targetPosition, rotation, weaponID);
+        CreateShoot(originPosition, targetPosition, rotation, weaponID);
     }
 
     private void ShootServer(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
         CreateShoot(originPosition, targetPosition, rotation, weaponID);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void ShootRPC(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    {
+        ShootServer(originPosition, targetPosition, rotation, weaponID);
     }
 
     private void CreateShoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
@@ -118,18 +123,18 @@ public class ProjectileManager : NetworkBehaviour
 
                 for (int i = 0; i < 3; i++)
                 {
-                    Vector3 tempDirection = direction;
+                    Vector3 shootDirection = direction;
 
                     if (i == 1)
                     {
-                        tempDirection = upperDirection;
+                        shootDirection = upperDirection;
                     }
                     else if (i == 2)
                     {
-                        tempDirection = lowerDirection;
+                        shootDirection = lowerDirection;
                     }
 
-                    InitializeProjectile(tempDirection);
+                    InitializeProjectile(shootDirection);
                 }
 
                 break;
