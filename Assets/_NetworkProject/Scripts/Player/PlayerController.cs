@@ -75,6 +75,12 @@ public class PlayerController : NetworkBehaviour
         playerInteract.InitializeInput(playerInput.Interacting);
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    public void InitializeRPC(FixedString64Bytes playerId, ulong clientID)
+    {
+        Initialize(playerId, clientID);
+    }
+
     private void CallEquipSlotWeapon(int slot)
     {
         BaseItem baseItem = InventoryManager.Instance.GetPlayerItemBySlot(AuthenticateID, slot);
@@ -96,12 +102,6 @@ public class PlayerController : NetworkBehaviour
 
         WeaponItem weaponItem = ItemDataList.Instance.GetItemById(weaponID) as WeaponItem;
         onPlayerEquippedWeaponChanged?.Invoke(weaponItem.WeaponTypeEnum);
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    public void InitializeRPC(FixedString64Bytes playerId, ulong clientID)
-    {
-        Initialize(playerId, clientID);
     }
 
     private void EnableScripts(bool value)

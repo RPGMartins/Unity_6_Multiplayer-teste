@@ -115,7 +115,7 @@ public class InventoryManager : NetworkBehaviour
 
         FixedString64Bytes playerID = data.PlayerID;
 
-        if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)
+        if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)    
         {
             return;
         }
@@ -141,10 +141,18 @@ public class InventoryManager : NetworkBehaviour
 
         if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
         {
+            TryEquipItemNetworkRPC(data);
+
             return;
         }
 
         TryEquipItemNetwork(data);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void TryEquipItemNetworkRPC(InventoryData inventoryData)
+    {
+        TryEquipItemNetwork(inventoryData);
     }
 
     private void TryEquipItemNetwork(InventoryData inventoryData)

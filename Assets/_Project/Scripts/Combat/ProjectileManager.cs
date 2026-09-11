@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class ProjectileManager : MonoBehaviour
+public class ProjectileManager : NetworkBehaviour
 {
     public static ProjectileManager Instance { get; private set; }
 
@@ -13,62 +14,103 @@ public class ProjectileManager : MonoBehaviour
 
     [SerializeField] private List<ProjectileData> projectileDataList;
 
-    private ObjectPool<LocalProjectile> projectilePool;
+    private ObjectPool<Projectile> projectilePool;
+    private ProjectilePrefabInstanceHandler projectilePrefabInstanceHandler;
 
-    private List<LocalProjectile> currentProjectiles = new List<LocalProjectile>();
+    private List<Projectile> currentProjectiles = new List<Projectile>();
 
-    public event Action<LocalProjectile> OnProjectileExpired;
+    public override void OnNetworkSpawn()
+    {
+        projectilePrefabInstanceHandler = new ProjectilePrefabInstanceHandler();
+        NetworkManager.PrefabHandler.AddHandler(projectilePrefab, projectilePrefabInstanceHandler);
+    }
 
-    public GameObject ProjectilePrefab => projectilePrefab;
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.PrefabHandler.RemoveHandler(projectilePrefab);
+    }
 
     private void Awake()
     {
         Instance = this;
-        projectilePool = new ObjectPool<LocalProjectile>(CreateLocalProjectile, GetLocalProjectile, ReleaseLocalProjectile, ActionOnDestroy);
+        projectilePool = new ObjectPool<Projectile>(CreateLocalProjectile, GetLocalProjectile, ReleaseLocalProjectile, ActionOnDestroy);
     }
 
     private void Update()
     {
+        if (NetworkConnectionChecker.CheckConnection() == true)
+        {
+            if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
+            {
+                return;
+            }
+        }
+
         for (int i = currentProjectiles.Count - 1; i >= 0; i--)
         {
-            LocalProjectile localProjectile = currentProjectiles[i];
+            Projectile projectile = currentProjectiles[i];
 
-            if (localProjectile.IsFarFromOrigin(40) == false)
+            if (projectile.IsFarFromOrigin(40) == false)
             {
                 continue;
             }
 
-            IvokeOnProjectileExpired(localProjectile);
+            IvokeOnProjectileExpired(projectile);
         }
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
         projectilePool.Dispose();
     }
 
-    public List<LocalProjectile> Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    public void Shoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
     {
-        ProjectileData projectileData = GetProjectileData(weaponID.ToString());
-        List<LocalProjectile> localProjectiles = Shoot(originPosition, targetPosition, projectileData);
-        currentProjectiles.AddRange(localProjectiles);
-
-        return localProjectiles;
+        if (NetworkConnectionChecker.CheckConnection() == false)
+        {
+            CreateShoot(originPosition, targetPosition, rotation, weaponID);
+        }
+        else
+        {
+            if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
+            {
+                ShootRPC(originPosition, targetPosition, rotation, weaponID);
+            }
+            else
+            {
+                ShootServer(originPosition, targetPosition, rotation, weaponID);
+            }
+        }
     }
 
-    public List<LocalProjectile> Shoot(Vector3 originPosition, Vector3 targetPosition, ProjectileData projectileData)
+    [Rpc(SendTo.Server)]
+    private void ShootRPC(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    {
+        ShootServer(originPosition, targetPosition, rotation, weaponID);
+    }
+
+    private void ShootServer(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    {
+        CreateShoot(originPosition, targetPosition, rotation, weaponID);
+    }
+
+    private void CreateShoot(Vector3 originPosition, Vector3 targetPosition, Quaternion rotation, FixedString64Bytes weaponID)
+    {
+        ProjectileData projectileData = GetProjectileData(weaponID.ToString());
+        InitializeShoot(originPosition, targetPosition, projectileData);
+    }
+
+    private void InitializeShoot(Vector3 originPosition, Vector3 targetPosition, ProjectileData projectileData)
     {
         switch (projectileData.ProjectileType)
         {
-            case projectilType.single:
-                LocalProjectile localProjectile = GetProjectileFromPool();
-                localProjectile.Initialize(originPosition, targetPosition - originPosition, projectileData.Velocity, projectileData.Damage);
+            case projectileType.Single:
+                InitializeProjectile(targetPosition - originPosition);
 
-                return new List<LocalProjectile>() { localProjectile };
+                break;
 
-            case projectilType.triple:
+            case projectileType.Triple:
 
-                List<LocalProjectile> projectileList = new List<LocalProjectile>();
                 float spreadAngle = 15f;
                 Vector3 direction = (targetPosition - originPosition).normalized;
                 Vector3 upperDirection = Quaternion.AngleAxis(spreadAngle, Vector3.forward) * direction;
@@ -87,59 +129,105 @@ public class ProjectileManager : MonoBehaviour
                         tempDirection = lowerDirection;
                     }
 
-                    LocalProjectile tempProjectile = GetProjectileFromPool();
-                    tempProjectile.Initialize(originPosition, tempDirection, projectileData.Velocity, projectileData.Damage);
-                    projectileList.Add(tempProjectile);
+                    InitializeProjectile(tempDirection);
                 }
 
-                return projectileList;
+                break;
         }
 
-        return null;
+        void InitializeProjectile(Vector3 direction)
+        {
+            Projectile projectile = GetProjectileFromPool();
+
+            if (NetworkConnectionChecker.CheckConnection() == true)
+            {
+                ProjectileSpawnData projectileSpawnData = new ProjectileSpawnData(originPosition, direction, projectileData.Velocity, projectileData.Damage);
+
+                projectile.Initialize(originPosition, direction, projectileData.Velocity, projectileData.Damage);
+                NetworkManager.PrefabHandler.SetInstantiationData(projectile.NetworkObject, projectileSpawnData);
+                projectile.NetworkObject.Spawn();
+            }
+            else
+            {
+                projectile.Initialize(originPosition, direction, projectileData.Velocity, projectileData.Damage);
+            }
+        }
     }
 
-    public LocalProjectile GetProjectileFromPool()
+    #region Pool
+
+    public Projectile GetProjectileFromPool()
     {
-        return projectilePool.Get();
+        Projectile projectile = projectilePool.Get();
+        currentProjectiles.Add(projectile);
+
+        return projectile;
     }
 
-    public void ReturnProjectile(LocalProjectile projectile)
+    public void DespawnProjectile(Projectile projectile)
+    {
+        if (NetworkConnectionChecker.CheckConnection() == true)
+        {
+            if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
+            {
+                return;
+            }
+
+            projectile.NetworkObject.Despawn(false);
+            ReleaseProjectileLocal(projectile);
+
+            return;
+        }
+
+        ReleaseProjectileLocal(projectile);
+    }
+
+    private Projectile CreateLocalProjectile()
+    {
+        GameObject projectileGameObject = Instantiate(projectilePrefab, projectileHolder);
+        Projectile projectile = projectileGameObject.GetComponentInChildren<Projectile>();
+        projectile.ProjectileTransformHolder.gameObject.SetActive(false);
+
+        return projectile;
+    }
+
+    private void GetLocalProjectile(Projectile projectile)
+    {
+        projectile.ProjectileTransformHolder.gameObject.SetActive(true);
+    }
+
+    private void ReleaseLocalProjectile(Projectile projectile)
+    {
+        projectile.ResetVariables();
+        projectile.ProjectileTransformHolder.gameObject.SetActive(false);
+    }
+
+    private void ActionOnDestroy(Projectile projectile)
+    {
+        Destroy(projectile.ProjectileTransformHolder);
+    }
+
+    #endregion
+
+    public void ReleaseProjectileLocal(Projectile projectile)
     {
         currentProjectiles.Remove(projectile);
         projectilePool.Release(projectile);
     }
 
-    private LocalProjectile CreateLocalProjectile()
+    public void IvokeOnProjectileExpired(Projectile projectile)
     {
-        GameObject projectile = Instantiate(projectilePrefab, projectileHolder);
-        LocalProjectile localProjectile = projectile.GetComponentInChildren<LocalProjectile>();
-        localProjectile.ProjectileTransformHolder.gameObject.SetActive(false);
-
-        return localProjectile;
+        if (projectile.NetworkObject.IsSpawned)
+        {
+            DespawnProjectile(projectile);
+        }
+        else
+        {
+            ReleaseProjectileLocal(projectile);
+        }
     }
 
-    private void GetLocalProjectile(LocalProjectile localProjectile)
-    {
-        localProjectile.ProjectileTransformHolder.gameObject.SetActive(true);
-    }
-
-    private void ReleaseLocalProjectile(LocalProjectile localProjectile)
-    {
-        localProjectile.ResetVariables();
-        localProjectile.ProjectileTransformHolder.gameObject.SetActive(false);
-    }
-
-    private void ActionOnDestroy(LocalProjectile localProjectile)
-    {
-        Destroy(localProjectile.ProjectileTransformHolder);
-    }
-
-    public void IvokeOnProjectileExpired(LocalProjectile localProjectile)
-    {
-        OnProjectileExpired?.Invoke(localProjectile);
-    }
-
-    public ProjectileData GetProjectileData(string weaponID)
+    private ProjectileData GetProjectileData(string weaponID)
     {
         foreach (ProjectileData projectileData in projectileDataList)
         {
@@ -151,23 +239,4 @@ public class ProjectileManager : MonoBehaviour
 
         throw new Exception("ID de arma faltando");
     }
-}
-
-[Serializable]
-public struct ProjectileData
-{
-    [SerializeField] private string weaponID;
-    [SerializeField] private projectilType projectilType;
-    [SerializeField] private float velocity;
-    [SerializeField] private int damage;
-
-    public string WeaponID => weaponID;
-    public projectilType ProjectileType => projectilType;
-    public float Velocity => velocity;
-    public int Damage => damage;
-}
-
-public enum projectilType
-{
-    single, triple
 }

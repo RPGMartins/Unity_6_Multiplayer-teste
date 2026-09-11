@@ -1,20 +1,19 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class ProjectilePrefabInstanceHandler : INetworkPrefabInstanceHandler
+public class ProjectilePrefabInstanceHandler : NetworkPrefabInstanceHandlerWithData<ProjectileSpawnData>
 {
-    public NetworkObject Instantiate(ulong ownerClientId, Vector3 position, Quaternion rotation) // é chamado somente no client side quando o spawn chama
+    public override NetworkObject Instantiate(ulong ownerClientId, Vector3 position, Quaternion rotation, ProjectileSpawnData projectileSpawnData) // é chamado somente no client side quando o spawn chama
     {
-        LocalProjectile projectile = ProjectileManager.Instance.GetProjectileFromPool();
-        NetworkObject networkObject = projectile.GetComponentInParent<NetworkObject>();
-        networkObject.transform.SetPositionAndRotation(position, rotation);
+        Projectile projectile = ProjectileManager.Instance.GetProjectileFromPool();
+        projectile.Initialize(projectileSpawnData.Origin, projectileSpawnData.Direction, projectileSpawnData.Velocity, projectileSpawnData.Damage);
 
-        return networkObject;
+        return projectile.NetworkObject;
     }
 
-    public void Destroy(NetworkObject networkObject)
+    public override void Destroy(NetworkObject networkObject)
     {
-        LocalProjectile projectile = networkObject.GetComponentInChildren<LocalProjectile>(true);
-        ProjectileManager.Instance.ReturnProjectile(projectile);
+        Projectile projectile = networkObject.GetComponentInChildren<Projectile>(true);
+        ProjectileManager.Instance.ReleaseProjectileLocal(projectile);
     }
 }

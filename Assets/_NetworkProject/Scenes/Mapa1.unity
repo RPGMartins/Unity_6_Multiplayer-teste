@@ -806,7 +806,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2065118534}
-  - component: {fileID: 2065118537}
   - component: {fileID: 2065118536}
   - component: {fileID: 2065118535}
   m_Layer: 0
@@ -855,34 +854,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 854e5092370c86d459feac642e46c321, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileManager
+  ShowTopMostFoldoutHeaderGroup: 1
   projectilePrefab: {fileID: 7329807361002182965, guid: 8f868a8d1eb56ad42b1f45434873efd3, type: 3}
   projectileHolder: {fileID: 2065118534}
   projectileDataList:
   - weaponID: FlashLight
-    projectilType: 0
+    projectileType: 0
     velocity: 0
     damage: 0
   - weaponID: Pistol
-    projectilType: 0
+    projectileType: 0
     velocity: 7
     damage: 3
   - weaponID: Rifle
-    projectilType: 1
+    projectileType: 0
     velocity: 10
     damage: 5
---- !u!114 &2065118537
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2065118533}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f33e2a5f2e75b146958cb622eae261b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkProjectileManager
-  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1001 &2020561675993358596
 PrefabInstance:
   m_ObjectHideFlags: 0

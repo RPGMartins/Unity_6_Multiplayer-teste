@@ -76,7 +76,7 @@ public class InventoryInitializer : NetworkBehaviour
             inventoryManager.TryAddItem(weaponItemData.ToBaseItem(), playerID);
         }
 
-        inventoryManager.TryEquipItem(new InventoryData(playerID, weaponsToAddToPlayerWhenEnter[0].ItemID, true));
+        inventoryManager.TryEquipItem(new InventoryData(playerID, weaponsToAddToPlayerWhenEnter[1].ItemID, true));
     }
 
     private void InitializeInventory(FixedString64Bytes clientsIDs)
