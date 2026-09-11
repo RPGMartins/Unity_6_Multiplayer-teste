@@ -5,7 +5,7 @@ public class LocalEnemyController : MonoBehaviour
 {
     [SerializeField] private Transform enemyTransform;
     [SerializeField] private EnemyAnimator enemyAnimator;
-    [SerializeField] private LocalTarget localTarget;
+    [SerializeField] private Target target;
     [SerializeField] private EnemyDetectPlayer enemyDetectPlayer;
     [SerializeField] private EnemyCombat enemyCombat;
 
@@ -21,7 +21,7 @@ public class LocalEnemyController : MonoBehaviour
     {
         if (network == false)
         {
-            localTarget.Initialize(life, destroyAction);
+            target.Initialize(life, destroyAction);
             initialized = true;
         }
     }

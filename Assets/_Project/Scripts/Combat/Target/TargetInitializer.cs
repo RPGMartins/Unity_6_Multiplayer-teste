@@ -1,10 +1,8 @@
-using System;
-using Unity.Netcode;
 using UnityEngine;
 
 public class TargetInitializer : MonoBehaviour
 {
-    [SerializeField] private GameObject targetPrefab;
+    [SerializeField] private Target targetPrefab;
     [SerializeField] private int defaultLifeValue = 3;
     [SerializeField] private bool spawnTarget;
 
@@ -17,34 +15,29 @@ public class TargetInitializer : MonoBehaviour
 
     private void Update()
     {
-        if (spawnTarget == true)
+        if (spawnTarget == false)
         {
-            SpawnTarget();
-            spawnTarget = false;
+            return;
         }
+
+        SpawnTarget();
+        spawnTarget = false;
     }
 
     private void SpawnTarget()
     {
-        GameObject targetInstance = Instantiate(targetPrefab);
-
-        Action destroyAction = () => Destroy(targetInstance);
+        Target target = Instantiate(targetPrefab);
 
         if (hasConnection == true)
         {
-            if (NetworkManager.Singleton.IsServer == false)
+            if (NetworkConnectionChecker.CheckIfHasAuthority() == false)
             {
                 return;
             }
 
-            NetworkTarget networkTarget = targetInstance.GetComponent<NetworkTarget>();
-            networkTarget.Initialize(defaultLifeValue, destroyAction);
-            networkTarget.GetComponent<NetworkObject>().Spawn();
+            target.NetworkObject.Spawn();
         }
-        else
-        {
-            LocalTarget localTarget = targetInstance.GetComponentInChildren<LocalTarget>();
-            localTarget.Initialize(defaultLifeValue, destroyAction);
-        }
+
+        target.Initialize(defaultLifeValue, () => Destroy(target.gameObject));
     }
 }

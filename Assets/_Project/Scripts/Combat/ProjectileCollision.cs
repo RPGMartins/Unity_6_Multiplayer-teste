@@ -19,21 +19,11 @@ public class ProjectileCollision : MonoBehaviour
             return;
         }
 
-        NetworkTarget networkTarget = other.transform.parent.GetComponent<NetworkTarget>();
+        Target target = other.transform.parent.GetComponentInChildren<Target>();
 
-        if (networkTarget != null && networkTarget.IsSpawned == true)
+        if (target != null)
         {
-            networkTarget.TakeDamage(damage);
-            onHitTarget?.Invoke();
-
-            return;
-        }
-
-        LocalTarget localTarget = other.transform.parent.GetComponentInChildren<LocalTarget>();
-
-        if (localTarget != null)
-        {
-            localTarget.Hit(damage);
+            target.Hit(damage);
             onHitTarget?.Invoke();
         }
     }

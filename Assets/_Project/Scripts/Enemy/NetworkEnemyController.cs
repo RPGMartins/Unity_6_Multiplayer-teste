@@ -5,7 +5,6 @@ using UnityEngine;
 public class NetworkEnemyController : NetworkBehaviour
 {
     [SerializeField] private LocalEnemyController localEnemyController;
-    [SerializeField] private NetworkTarget networkTarget;
 
     private NetworkVariable<EnemyState> enemyState = new NetworkVariable<EnemyState>();
     private bool initialized = false;
@@ -22,7 +21,7 @@ public class NetworkEnemyController : NetworkBehaviour
 
     public void Initialize(int life, Action destroyAction)
     {
-        networkTarget.Initialize(life, destroyAction);
+        //networkTarget.Initialize(life, destroyAction);
         localEnemyController.Initialize(life, destroyAction, true);
 
         initialized = true;

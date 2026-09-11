@@ -135,7 +135,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 483491931
+  GlobalObjectIdHash: 2252226339
   InScenePlacedSourceGlobalObjectIdHash: 2252226339
   DeferredDespawnTick: 0
   Ownership: 1
@@ -163,7 +163,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkEnemyController
   ShowTopMostFoldoutHeaderGroup: 1
   localEnemyController: {fileID: 8774337708926661153}
-  networkTarget: {fileID: 8145589908128615555}
 --- !u!114 &7866053231484898271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -493,7 +492,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LocalEnemyController
   enemyTransform: {fileID: 3248799133008117822}
   enemyAnimator: {fileID: 3479280603444082839}
-  localTarget: {fileID: 6309972607736747568}
+  target: {fileID: 553583792188638136}
   enemyDetectPlayer: {fileID: 4114010332158394714}
   enemyCombat: {fileID: 5546200295095048885}
 --- !u!1001 &263808875033924398
@@ -578,14 +577,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
---- !u!4 &3240830070623007974 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 3409366761296717768, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
-  m_PrefabInstance: {fileID: 263808875033924398}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &6309972607736747568 stripped
+--- !u!114 &553583792188638136 stripped
 MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6068805426313823518, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
+  m_CorrespondingSourceObject: {fileID: 290347213231444118, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
   m_PrefabInstance: {fileID: 263808875033924398}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
@@ -594,14 +588,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d3826ab279441649a6db244e927bc29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalTarget
---- !u!114 &8145589908128615555 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8260672758715604909, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
+--- !u!4 &3240830070623007974 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3409366761296717768, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
   m_PrefabInstance: {fileID: 263808875033924398}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9d813d4e295f5543bf1c1009254a54d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkTarget
