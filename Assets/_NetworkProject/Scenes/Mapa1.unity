@@ -623,7 +623,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1811930586
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -636,7 +636,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0fe2e464a0c7a4f4b8ba0fc20b2909c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TargetInititlaizer
-  targetPrefab: {fileID: 369130606313266596, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
+  targetPrefab: {fileID: 290347213231444118, guid: 11f74f5b4069b924eae3e47690bdfcc9, type: 3}
   defaultLifeValue: 3
   spawnTarget: 0
 --- !u!4 &1811930587
@@ -878,13 +878,21 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2472384082385973385, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
+      propertyPath: offsetSpawn.x
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 2472384082385973385, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
+      propertyPath: offsetSpawn.y
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 6802715548197955205, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
       propertyPath: m_Name
       value: WaveEnemyManager
       objectReference: {fileID: 0}
     - target: {fileID: 6802715548197955205, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7010145355062465827, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
       propertyPath: m_LocalPosition.x

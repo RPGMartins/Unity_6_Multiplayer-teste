@@ -1,46 +1,53 @@
 using System;
-using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class WaveEnemyManager : MonoBehaviour
+public class WaveEnemyManager : NetworkBehaviour
 {
+    [SerializeField] private EnemyInitializer enemyInitializer;
     [SerializeField] private WaveEnemyData waveEnemyData;
     [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private int life;
     [SerializeField] private Vector2 offsetSpawn;
 
+    private ProjectilePrefabInstanceHandler projectilePrefabInstanceHandler;
+
     public event Action onFinishedAllWaves;
     public event Action onFinishedWave;
 
-    private List<EnemyInitializer> enemyInitializerList = new List<EnemyInitializer>();
     private int waveIndex;
     private int enemiesToSpawn;
     private float timeToSpawn;
     private float timeToWave;
     private bool finishedWaves;
-    private bool hasConnection;
     public static WaveEnemyManager Instance { get; private set; }
 
+    public override void OnNetworkSpawn()
+    {
+        projectilePrefabInstanceHandler = new ProjectilePrefabInstanceHandler();
+        NetworkManager.PrefabHandler.AddHandler(enemyPrefab, projectilePrefabInstanceHandler);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        NetworkManager.PrefabHandler.RemoveHandler(enemyPrefab);
+    }
+    
     private void Awake()
     {
         Instance = this;
-
-        hasConnection = NetworkConnectionChecker.CheckConnection();
-
-        EnemyInitializer[] enemyInitializers = GetComponentsInChildren<EnemyInitializer>();
-
-        foreach (EnemyInitializer enemyInitializer in enemyInitializers)
-        {
-            enemyInitializerList.Add(enemyInitializer);
-        }
     }
 
     private void Start()
     {
         ResetVariables();
         GetWaveInfos();
+
+        if (NetworkConnectionChecker.CheckConnection() == true && NetworkConnectionChecker.CheckIfHasAuthority() == false)
+        {
+            enabled = false;
+        }
     }
 
     private void Update()
@@ -95,22 +102,8 @@ public class WaveEnemyManager : MonoBehaviour
 
     private void SpawnEnemy()
     {
-        EnemyInitializer randomEnemyInitializer = enemyInitializerList[Random.Range(0, enemyInitializerList.Count)];
-        Vector2 spawnPosition = randomEnemyInitializer.transform.position + new Vector3(Random.Range(-offsetSpawn.x, offsetSpawn.x), Random.Range(-offsetSpawn.y, offsetSpawn.y));
-
-        if (hasConnection == true)
-        {
-            if (NetworkManager.Singleton.IsServer == false)
-            {
-                return;
-            }
-
-            randomEnemyInitializer.SpawnEnemyNetwork(enemyPrefab, spawnPosition, life);
-        }
-        else
-        {
-            randomEnemyInitializer.SpawnEnemyLocal(enemyPrefab, spawnPosition, life);
-        }
+        Vector2 spawnPosition = enemyInitializer.transform.position + new Vector3(Random.Range(-offsetSpawn.x, offsetSpawn.x), Random.Range(-offsetSpawn.y, offsetSpawn.y));
+        enemyInitializer.SpawnEnemy(enemyPrefab, spawnPosition, life);
     }
 
     private void ResetVariables()
