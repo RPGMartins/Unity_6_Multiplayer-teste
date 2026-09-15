@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7010145355062465827}
+  - component: {fileID: 3482099830936133397}
   - component: {fileID: 2472384082385973385}
   - component: {fileID: 1672960319154900876}
   m_Layer: 0
@@ -33,6 +34,32 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3482099830936133397
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6802715548197955205}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 1307327807
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &2472384082385973385
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -45,11 +72,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b7803c7b171c29542aa71d06cbcfcd4a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WaveEnemyManager
-  enemyInitializer: {fileID: 1672960319154900876}
+  ShowTopMostFoldoutHeaderGroup: 1
+  enemySpawner: {fileID: 1672960319154900876}
   waveEnemyData: {fileID: 11400000, guid: ff889a6ca5d379d4187e498930c18473, type: 2}
-  enemyPrefab: {fileID: 1725601962213283590, guid: 7130d81d1569d394eb083f6593dabe77, type: 3}
   life: 3
-  offsetSpawn: {x: 2, y: 2}
+  offsetSpawn: {x: 5, y: 5}
 --- !u!114 &1672960319154900876
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62,3 +89,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b2644aeb6f32b34e9b7ce4ea14a778f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyInitializer
+  enemyPrefab: {fileID: 1725601962213283590, guid: 7130d81d1569d394eb083f6593dabe77, type: 3}

@@ -878,21 +878,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2472384082385973385, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
-      propertyPath: offsetSpawn.x
-      value: 5
+    - target: {fileID: 3482099830936133397, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3516652490
       objectReference: {fileID: 0}
-    - target: {fileID: 2472384082385973385, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
-      propertyPath: offsetSpawn.y
-      value: 5
+    - target: {fileID: 3482099830936133397, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1725390201
       objectReference: {fileID: 0}
     - target: {fileID: 6802715548197955205, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
       propertyPath: m_Name
       value: WaveEnemyManager
-      objectReference: {fileID: 0}
-    - target: {fileID: 6802715548197955205, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7010145355062465827, guid: 9a6b56c7d0e9ec649994eed6a5fa5710, type: 3}
       propertyPath: m_LocalPosition.x

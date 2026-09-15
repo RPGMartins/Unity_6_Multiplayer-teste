@@ -5,13 +5,10 @@ using Random = UnityEngine.Random;
 
 public class WaveEnemyManager : NetworkBehaviour
 {
-    [SerializeField] private EnemyInitializer enemyInitializer;
+    [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private WaveEnemyData waveEnemyData;
-    [SerializeField] private GameObject enemyPrefab;
     [SerializeField] private int life;
     [SerializeField] private Vector2 offsetSpawn;
-
-    private ProjectilePrefabInstanceHandler projectilePrefabInstanceHandler;
 
     public event Action onFinishedAllWaves;
     public event Action onFinishedWave;
@@ -23,17 +20,6 @@ public class WaveEnemyManager : NetworkBehaviour
     private bool finishedWaves;
     public static WaveEnemyManager Instance { get; private set; }
 
-    public override void OnNetworkSpawn()
-    {
-        projectilePrefabInstanceHandler = new ProjectilePrefabInstanceHandler();
-        NetworkManager.PrefabHandler.AddHandler(enemyPrefab, projectilePrefabInstanceHandler);
-    }
-
-    public override void OnNetworkDespawn()
-    {
-        NetworkManager.PrefabHandler.RemoveHandler(enemyPrefab);
-    }
-    
     private void Awake()
     {
         Instance = this;
@@ -102,8 +88,8 @@ public class WaveEnemyManager : NetworkBehaviour
 
     private void SpawnEnemy()
     {
-        Vector2 spawnPosition = enemyInitializer.transform.position + new Vector3(Random.Range(-offsetSpawn.x, offsetSpawn.x), Random.Range(-offsetSpawn.y, offsetSpawn.y));
-        enemyInitializer.SpawnEnemy(enemyPrefab, spawnPosition, life);
+        Vector2 spawnPosition = enemySpawner.transform.position + new Vector3(Random.Range(-offsetSpawn.x, offsetSpawn.x), Random.Range(-offsetSpawn.y, offsetSpawn.y));
+        enemySpawner.SpawnEnemy(spawnPosition, life);
     }
 
     private void ResetVariables()

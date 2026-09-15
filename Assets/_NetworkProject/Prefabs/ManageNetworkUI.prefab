@@ -6474,13 +6474,11 @@ MonoBehaviour:
   joinLobbyScreen: {fileID: 3110929675024679051}
   createLobbyScreen: {fileID: 4745795250244873964}
   menuLayout:
-    createLobby: {fileID: 5628899153288436163}
-    updateLobby: {fileID: 5628899153288436163}
     viewLobby: {fileID: 3940616301028525429}
     createRandomLobby: {fileID: 162255449928695552}
     joinLobby: {fileID: 1593875007492257236}
     quickJoinLobby: {fileID: 4793747520156147132}
-    serachLobby: {fileID: 6899713803291105001}
+    searchLobby: {fileID: 6899713803291105001}
 --- !u!1 &7512231482206319005
 GameObject:
   m_ObjectHideFlags: 0

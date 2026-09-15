@@ -92,7 +92,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3248799133008117822}
   - component: {fileID: 4218564870138290079}
-  - component: {fileID: 6923689897445373414}
   - component: {fileID: 7866053231484898271}
   - component: {fileID: 486570233984771692}
   - component: {fileID: 7014162612515735101}
@@ -149,20 +148,6 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
---- !u!114 &6923689897445373414
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1725601962213283590}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd307713459ae0a4fb416d20832d2d1f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkEnemyController
-  ShowTopMostFoldoutHeaderGroup: 1
-  localEnemyController: {fileID: 7912741783733236966}
 --- !u!114 &7866053231484898271
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -265,6 +250,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cae8d2a4a3fe93348b7ec44edbacda10, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalEnemyController
+  ShowTopMostFoldoutHeaderGroup: 1
+  networkObject: {fileID: 4218564870138290079}
   enemyTransform: {fileID: 3248799133008117822}
   enemyAnimator: {fileID: 3479280603444082839}
   target: {fileID: 553583792188638136}

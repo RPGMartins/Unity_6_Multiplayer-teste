@@ -140,35 +140,21 @@ public class ManageNetworkUI : MonoBehaviour
 [Serializable]
 public struct MenuLayout
 {
-    [SerializeField] private Button updateLobby;
     [SerializeField] private Button viewLobby;
     [SerializeField] private Button createRandomLobby;
     [SerializeField] private Button joinLobby;
     [SerializeField] private Button quickJoinLobby;
-    [SerializeField] private Button serachLobby;
+    [SerializeField] private Button searchLobby;
 
     public void CheckIfInLobby()
     {
-        if (NetworkManager.Singleton.IsConnectedClient == false)
-        {
-            createRandomLobby.gameObject.SetActive(true);
-            joinLobby.gameObject.SetActive(true);
-            quickJoinLobby.gameObject.SetActive(true);
-            serachLobby.gameObject.SetActive(true);
-            updateLobby.gameObject.SetActive(true);
-            viewLobby.gameObject.SetActive(false);
-
-            return;
-        }
-
-        bool show = NetworkManager.Singleton.IsConnectedClient;
+        bool show = NetworkManager.Singleton?.IsConnectedClient == true;
 
         createRandomLobby.gameObject.SetActive(!show);
         joinLobby.gameObject.SetActive(!show);
         quickJoinLobby.gameObject.SetActive(!show);
-        serachLobby.gameObject.SetActive(!show);
+        searchLobby.gameObject.SetActive(!show);
 
-        updateLobby.gameObject.SetActive(show);
         viewLobby.gameObject.SetActive(show);
     }
 }

@@ -1,10 +1,9 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
-public class LocalEnemyController : MonoBehaviour
+public class EnemyController : NetworkBehaviour
 {
-    [SerializeField] private Transform enemyTransform;
-    [SerializeField] private EnemyAnimator enemyAnimator;
     [SerializeField] private Target target;
     [SerializeField] private EnemyDetectPlayer enemyDetectPlayer;
     [SerializeField] private EnemyCombat enemyCombat;
@@ -12,18 +11,18 @@ public class LocalEnemyController : MonoBehaviour
     private bool initialized = false;
     private EnemyState enemyState;
 
-    public Transform EnemyTransform => enemyTransform;
-    public EnemyAnimator EnemyAnimator => enemyAnimator;
     public EnemyDetectPlayer EnemyDetectPlayer => enemyDetectPlayer;
     public EnemyCombat EnemyCombat => enemyCombat;
 
-    public void Initialize(int life, Action destroyAction, bool network)
+    public void Initialize(int life, Action destroyAction)
     {
-        if (network == false)
+        if (NetworkConnectionChecker.CheckConnection() == true && NetworkConnectionChecker.CheckIfHasAuthority() == false)
         {
-            target.Initialize(life, destroyAction);
-            initialized = true;
+            return;
         }
+
+        target.Initialize(life, destroyAction);
+        initialized = true;
     }
 
     private void Update()
@@ -33,7 +32,7 @@ public class LocalEnemyController : MonoBehaviour
             return;
         }
 
-        EnemyCombat.MainAction(enemyState, EnemyDetectPlayer.Players, enemyTransform, EnemyTransform.position, out EnemyState newEnemyState);
+        EnemyCombat.MainAction(enemyState, EnemyDetectPlayer.Players, transform, transform.position, out EnemyState newEnemyState);
 
         if (newEnemyState != enemyState)
         {
@@ -41,7 +40,7 @@ public class LocalEnemyController : MonoBehaviour
         }
     }
 
-    public void UpdateEnemyState(EnemyState enemyState)
+    private void UpdateEnemyState(EnemyState enemyState)
     {
         this.enemyState = enemyState;
     }
