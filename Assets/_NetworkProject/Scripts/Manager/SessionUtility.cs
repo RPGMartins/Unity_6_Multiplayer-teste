@@ -9,6 +9,7 @@ using Random = UnityEngine.Random;
 public static class SessionUtility
 {
     private static bool isCreatingSession;
+    private static bool isLeavingSession;
 
     #region Create Session
 
@@ -168,7 +169,13 @@ public static class SessionUtility
 
     public static async Task LeaveSession(ISession currentSession, Action<ISession> onSessionDisconnect, Action onStartTryDisconnectFromSession, Action<SessionError> onSessionDisconnectFailed)
     {
+        if (isLeavingSession == true)
+        {
+            return;
+        }
+
         onStartTryDisconnectFromSession?.Invoke();
+        isLeavingSession = true;
 
         try
         {
@@ -182,6 +189,10 @@ public static class SessionUtility
         catch (Exception e)
         {
             onSessionDisconnectFailed?.Invoke(SessionError.None);
+        }
+        finally
+        {
+            isLeavingSession = false;
         }
     }
 

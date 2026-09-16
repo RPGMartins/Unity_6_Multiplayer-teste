@@ -47,7 +47,7 @@ public class LobbyManager : MonoBehaviour
 
         lobbyNetworkState.LobbyData.OnValueChanged += LobbyDataValueChanged;
         lobbyNetworkState.PlayersState.OnListChanged += LobbyPlayersDataChanged;
-        NetworkManager.Singleton.OnClientDisconnectCallback += RemoveClient;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
         sceneControllerManager.Initiliaze(OnChangeScene, this);
     }
@@ -66,7 +66,7 @@ public class LobbyManager : MonoBehaviour
 
         if (NetworkManager.Singleton != null)
         {
-            NetworkManager.Singleton.OnClientDisconnectCallback -= RemoveClient;
+            NetworkManager.Singleton.OnClientDisconnectCallback -= OnClientDisconnected;
         }
     }
 
@@ -187,7 +187,7 @@ public class LobbyManager : MonoBehaviour
         }
     }
 
-    private void RemoveClient(ulong clientID) //Player lost conection
+    private void OnClientDisconnected(ulong clientID)
     {
         PlayerData playerData = lobbyNetworkState.GetPlayerDataByClientID(clientID);
 
