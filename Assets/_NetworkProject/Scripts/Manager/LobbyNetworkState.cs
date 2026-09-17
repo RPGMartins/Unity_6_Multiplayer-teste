@@ -7,10 +7,10 @@ using UnityEngine;
 
 public class LobbyNetworkState : NetworkBehaviour
 {
-    private NetworkVariable<LobbyData> lobbyData = new NetworkVariable<LobbyData>();
+    private NetworkVariable<SessionData> lobbyData = new NetworkVariable<SessionData>();
     private NetworkList<PlayerData> playersState;
     private NetworkVariable<LobbyStateEnum> lobbyStateEnum = new NetworkVariable<LobbyStateEnum>();
-    public NetworkVariable<LobbyData> LobbyData => lobbyData;
+    public NetworkVariable<SessionData> LobbyData => lobbyData;
     public NetworkList<PlayerData> PlayersState => playersState;
     public NetworkVariable<LobbyStateEnum> LobbyStateEnum => lobbyStateEnum;
 
@@ -26,19 +26,19 @@ public class LobbyNetworkState : NetworkBehaviour
 
     #region Lobby
 
-    public void CreateLobbyData(int maxPlayers, bool isPrivate, string lobbyName, string lobbyCode)
+    public void CreateLobbyData(SessionData sessionData)
     {
         if (IsServer == false)
         {
             return;
         }
 
-        lobbyData.Value = new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode);
+        this.lobbyData.Value = new SessionData(sessionData);
     }
 
     public void UpdateSessionData(GameSession session)
     {
-        CreateLobbyData(session.OnlineSession.MaxPlayers, session.OnlineSession.IsPrivate, session.OnlineSession.Name, session.OnlineSession.Code);
+        CreateLobbyData(session.SessionData);
     }
 
     public void UpdateLobbyStateEnum(LobbyStateEnum lobbyStateEnum)
@@ -186,7 +186,7 @@ public class LobbyNetworkState : NetworkBehaviour
             return;
         }
 
-        lobbyData.Value = new LobbyData();
+        lobbyData.Value = new SessionData();
         playersState.Clear();
         lobbyStateEnum.Value = global::LobbyStateEnum.OnLobby;
     }

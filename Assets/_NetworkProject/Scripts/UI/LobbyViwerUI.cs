@@ -50,10 +50,10 @@ public class LobbyViwerUI : UIBase
         UpdateSessionData(SessionManager.Instance.GetLobbyData());
     }
 
-    private void UpdateSessionData(LobbyData lobbyData)
+    private void UpdateSessionData(SessionData sessionData)
     {
-        lobbyNameText.text = lobbyData.LobbyName.Value;
-        lobbyCodeText.text = lobbyData.LobbyCode.Value;
+        lobbyNameText.text = sessionData.LobbyName.Value;
+        lobbyCodeText.text = sessionData.LobbyCode.Value;
     }
 
     private void UpdatePlayerData(PlayerData playerData, NetworkListEvent<PlayerData>.EventType playerEventType)

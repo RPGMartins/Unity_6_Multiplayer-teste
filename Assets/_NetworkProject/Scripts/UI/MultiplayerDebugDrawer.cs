@@ -115,7 +115,7 @@ public class MultiplayerDebugDrawer
             return;
         }
 
-        if (sessionManager.CurrentSession.OnlineSession.IsServer == true)
+        if (sessionManager.CurrentSession.IsServer() == true)
         {
             DrawTextField("Nome do Lobby:", ref lobbyName);
             isPrivate = GUILayout.Toggle(isPrivate, "Sala Privada");
@@ -148,7 +148,7 @@ public class MultiplayerDebugDrawer
 
         if (sessionManager.GetLobbyState() == LobbyStateEnum.OnLobby)
         {
-            if (sessionManager.CurrentSession.OnlineSession.IsHost == true)
+            if (sessionManager.CurrentSession.IsHost() == true)
             {
                 if (GUILayout.Button("Start Match"))
                 {
@@ -163,7 +163,7 @@ public class MultiplayerDebugDrawer
         }
         else if (sessionManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
         {
-            if (sessionManager.CurrentSession.OnlineSession.IsHost == true)
+            if (sessionManager.CurrentSession.IsHost() == true)
             {
                 if (GUILayout.Button("Back To Lobby"))
                 {

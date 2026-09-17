@@ -1,29 +1,33 @@
 using System;
 using Unity.Collections;
 using Unity.Netcode;
-using UnityEngine;
 
 [Serializable]
 public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 {
-    [SerializeField] private bool isReady;
+    private bool isReady;
     private ulong clientId;
-    public FixedString64Bytes Name;
-    public FixedString64Bytes AuthenticationID;
+    private bool isHost;
+    public FixedString64Bytes name;
+    public FixedString64Bytes authenticationID;
 
     public bool IsReady => isReady;
     public ulong ClientId => clientId;
+    public bool IsHost => isHost;
+    public FixedString64Bytes Name => name;
+    public FixedString64Bytes AuthenticationID => authenticationID;
 
-    public PlayerData(PlayerData playerData) : this(playerData.AuthenticationID, playerData.clientId, playerData.Name)
+    public PlayerData(PlayerData playerData) : this(playerData.authenticationID, playerData.clientId, playerData.name, playerData.isHost)
     {
     }
 
-    public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName)
+    public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName, bool isHost)
     {
-        AuthenticationID = authenticationId;
+        this.authenticationID = authenticationId;
         this.clientId = clientId;
-        Name = playerName;
-        isReady = false;
+        this.name = playerName;
+        this.isReady = false;
+        this.isHost = isHost;
     }
 
     public void SetClientID(ulong clientId)
@@ -44,17 +48,19 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
     {
         serializer.SerializeValue(ref isReady);
-        serializer.SerializeValue(ref Name);
-        serializer.SerializeValue(ref AuthenticationID);
+        serializer.SerializeValue(ref name);
+        serializer.SerializeValue(ref authenticationID);
         serializer.SerializeValue(ref clientId);
+        serializer.SerializeValue(ref isHost);
     }
 
     public bool Equals(PlayerData other)
     {
         return isReady == other.isReady &&
-               Name.Equals(other.Name) &&
+               isHost == other.isHost &&
+               name.Equals(other.Name) &&
                clientId.Equals(other.clientId) &&
-               AuthenticationID.Equals(other.AuthenticationID);
+               authenticationID.Equals(other.authenticationID);
     }
 
     public override bool Equals(object obj)
@@ -64,7 +70,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(isReady, Name, AuthenticationID, clientId);
+        return HashCode.Combine(isReady, name, authenticationID, clientId);
     }
 
     private static FixedString64Bytes ToFixedString(string value)

@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Netcode;
 using Unity.Services.Multiplayer;
 using Random = UnityEngine.Random;
@@ -29,7 +30,7 @@ public static class SessionUtility
         try
         {
             IHostSession currentSession = null;
-            LobbyData lobbyData = new LobbyData(1, true, "Singleplayer", default);
+            SessionData sessionData = new SessionData(1, true, "Singleplayer", default);
 
             if (options != null)
             {
@@ -38,10 +39,10 @@ public static class SessionUtility
                 currentSession = await MultiplayerService.Instance.CreateSessionAsync(options);
                 currentSession.IsLocked = oldIsLocked;
                 await currentSession.SavePropertiesAsync();
-                lobbyData = new LobbyData(currentSession.MaxPlayers, currentSession.IsPrivate, currentSession.Name, currentSession.Code);
+                sessionData = new SessionData(currentSession.MaxPlayers, currentSession.IsPrivate, currentSession.Name, currentSession.Code);
             }
 
-            GameSession gameSession = new GameSession(lobbyData, currentSession);
+            GameSession gameSession = new GameSession(sessionData, currentSession);
             onSessionConnected?.Invoke(gameSession);
         }
         catch (SessionException exception)
@@ -123,19 +124,19 @@ public static class SessionUtility
         await JoinSessionByID(session.Id, onSessionConnected, onStartTryConnectToSession, onSessionConnectFailed);
     }
 
-    public static async Task ReconnectSession(GameSession currentSession, string playerID, Action<GameSession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
+    public static async Task ReconnectSession(GameSession currentSession, FixedString64Bytes playerID, Action<GameSession> onSessionConnected, Action onStartTryConnectToSession, Action<SessionError> onSessionConnectFailed)
     {
         onStartTryConnectToSession?.Invoke();
 
         if (currentSession != null)
         {
-            await currentSession.OnlineSession.RefreshAsync();
+            await currentSession.RefreshAsync();
 
-            if (currentSession.OnlineSession.HasPlayer(playerID) == true)
+            if (currentSession.HasPlayer(playerID) == true)
             {
                 try
                 {
-                    await currentSession.OnlineSession.ReconnectAsync();
+                    await currentSession.ReconnectAsync();
                     NetworkManager.Singleton.StartClient();
                     onSessionConnected?.Invoke(currentSession);
                 }
@@ -216,7 +217,7 @@ public static class SessionUtility
 
     public static async Task UpdateSessionData(GameSession currentSession, bool isPrivate, string lobbyName, Action<GameSession> onSessionUpdate, Action onStartTrySessionUpdate, Action<SessionError> onSessionUpdateFailed)
     {
-        if (currentSession.OnlineSession.IsHost == false)
+        if (currentSession.IsHost() == false)
         {
             return;
         }
@@ -225,12 +226,7 @@ public static class SessionUtility
 
         try
         {
-            IHostSession hostSession = currentSession.OnlineSession.AsHost();
-
-            hostSession.Name = lobbyName;
-            hostSession.IsPrivate = isPrivate;
-
-            await hostSession.SavePropertiesAsync();
+            await currentSession.UpdateSessionData(lobbyName, isPrivate);
             onSessionUpdate?.Invoke(currentSession);
         }
         catch (SessionException sessionException)
@@ -249,7 +245,7 @@ public static class SessionUtility
 
     public static async Task RemovePlayerFromSession(GameSession currentSession, string authenticateID, Action onStartTryRemovePlayerFromSession, Action<GameSession> onRemovePlayerFromSession, Action<SessionError> onRemovePlayerFromSessionFailed)
     {
-        if (currentSession.OnlineSession.IsServer == false)
+        if (currentSession.IsServer() == false)
         {
             return;
         }
@@ -258,7 +254,7 @@ public static class SessionUtility
 
         try
         {
-            await currentSession.OnlineSession.AsHost().RemovePlayerAsync(authenticateID);
+            await currentSession.RemovePlayerAsync(authenticateID);
             onRemovePlayerFromSession?.Invoke(currentSession);
         }
         catch (SessionException sessionException)
