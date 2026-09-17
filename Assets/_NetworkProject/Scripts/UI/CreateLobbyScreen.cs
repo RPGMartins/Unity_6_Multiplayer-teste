@@ -18,11 +18,11 @@ public class CreateLobbyScreen : UIBase
 
         if (NetworkManager.Singleton.IsConnectedClient == false)
         {
-            LobbyManager.Instance.CreateSession(options);
+            SessionManager.Instance.CreateSession(options);
         }
         else
         {
-            LobbyManager.Instance.UpdateLobbyData(isPrivateToggle.isOn, lobbyNameInputField.text);
+            SessionManager.Instance.UpdateLobbyData(isPrivateToggle.isOn, lobbyNameInputField.text);
         }
     }
 }

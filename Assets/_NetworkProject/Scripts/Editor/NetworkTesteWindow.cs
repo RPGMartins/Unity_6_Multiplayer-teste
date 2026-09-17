@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 
 public class NetworkTesteWindow : EditorWindow
 {
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
     private NetworkSimulator networkSimulator;
     private SceneControllerManager sceneControllerManager;
 
@@ -29,13 +29,13 @@ public class NetworkTesteWindow : EditorWindow
 
     private void CreateGUI()
     {
-        lobbyManager = FindFirstObjectByType<LobbyManager>(FindObjectsInactive.Include);
+        sessionManager = FindFirstObjectByType<SessionManager>(FindObjectsInactive.Include);
         networkSimulator = FindFirstObjectByType<NetworkSimulator>(FindObjectsInactive.Include);
         sceneControllerManager = FindFirstObjectByType<SceneControllerManager>(FindObjectsInactive.Include);
 
-        if (lobbyManager == null || networkSimulator == null)
+        if (sessionManager == null || networkSimulator == null)
         {
-            Debug.LogWarning("LobbyManager ou NetworkSimulator nao foram encontrados.");
+            Debug.LogWarning("SessionManager ou NetworkSimulator nao foram encontrados.");
 
             return;
         }
@@ -96,7 +96,7 @@ public class NetworkTesteWindow : EditorWindow
         lobbyTab = new VisualElement();
         lobbyTab.style.flexGrow = 1;
 
-        IMGUIContainer lobbyContainer = new IMGUIContainer(() => { multiplayerDebugDrawer.Draw(lobbyManager, null, sceneControllerManager); });
+        IMGUIContainer lobbyContainer = new IMGUIContainer(() => { multiplayerDebugDrawer.Draw(sessionManager, null, sceneControllerManager); });
 
         lobbyContainer.style.flexGrow = 1;
         lobbyTab.Add(lobbyContainer);

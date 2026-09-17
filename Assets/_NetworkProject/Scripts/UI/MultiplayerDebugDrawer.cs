@@ -12,7 +12,7 @@ public class MultiplayerDebugDrawer
     private string joinCode = string.Empty;
     private bool isPrivate;
 
-    public void Draw(LobbyManager lobbyManager, NetworkSimulator networkSimulator, SceneControllerManager sceneControllerManager)
+    public void Draw(SessionManager sessionManager, NetworkSimulator networkSimulator, SceneControllerManager sceneControllerManager)
     {
         if (networkSimulator != null)
         {
@@ -20,16 +20,16 @@ public class MultiplayerDebugDrawer
             GUILayout.Space(20);
         }
 
-        if (lobbyManager != null)
+        if (sessionManager != null)
         {
-            if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnLobby)
+            if (sessionManager.GetLobbyState() == LobbyStateEnum.OnLobby)
             {
-                DrawCreateLobby(lobbyManager);
-                DrawJoinLobby(lobbyManager);
+                DrawCreateLobby(sessionManager);
+                DrawJoinLobby(sessionManager);
                 GUILayout.Space(20);
             }
 
-            DrawLobbyOptions(lobbyManager, sceneControllerManager);
+            DrawLobbyOptions(sessionManager, sceneControllerManager);
         }
     }
 
@@ -51,9 +51,9 @@ public class MultiplayerDebugDrawer
         GUILayout.EndHorizontal();
     }
 
-    private void DrawCreateLobby(LobbyManager lobbyManager)
+    private void DrawCreateLobby(SessionManager sessionManager)
     {
-        if (lobbyManager.CurrentSession != null)
+        if (sessionManager.CurrentSession != null)
         {
             return;
         }
@@ -70,19 +70,19 @@ public class MultiplayerDebugDrawer
             int.TryParse(playerQuantityText, out int playerQuantity);
 
             SessionOptions options = CreateSessionOptions(lobbyName, isPrivate, playerQuantity, password).WithRelayNetwork();
-            lobbyManager.CreateSession(options);
+            sessionManager.CreateSession(options);
         }
 
         if (GUILayout.Button("Create Random Lobby"))
         {
             SessionOptions options = CreateSessionOptions().WithRelayNetwork();
-            lobbyManager.CreateSession(options);
+            sessionManager.CreateSession(options);
         }
     }
 
-    private void DrawJoinLobby(LobbyManager lobbyManager)
+    private void DrawJoinLobby(SessionManager sessionManager)
     {
-        if (lobbyManager.CurrentSession != null)
+        if (sessionManager.CurrentSession != null)
         {
             return;
         }
@@ -94,50 +94,50 @@ public class MultiplayerDebugDrawer
 
         if (GUILayout.Button("Join Lobby"))
         {
-            lobbyManager.JoinSessionByCode(joinCode);
+            sessionManager.JoinSessionByCode(joinCode);
         }
 
         if (GUILayout.Button("Quick Join"))
         {
-            lobbyManager.QuickJoinSession();
+            sessionManager.QuickJoinSession();
         }
 
         if (GUILayout.Button("Rejoin Lobby"))
         {
-            lobbyManager.ReconnectSession();
+            sessionManager.ReconnectSession();
         }
     }
 
-    private async void DrawLobbyOptions(LobbyManager lobbyManager, SceneControllerManager sceneControllerManager)
+    private async void DrawLobbyOptions(SessionManager sessionManager, SceneControllerManager sceneControllerManager)
     {
-        if (lobbyManager.CurrentSession == null)
+        if (sessionManager.CurrentSession == null)
         {
             return;
         }
 
-        if (lobbyManager.CurrentSession.IsServer == true)
+        if (sessionManager.CurrentSession.OnlineSession.IsServer == true)
         {
             DrawTextField("Nome do Lobby:", ref lobbyName);
             isPrivate = GUILayout.Toggle(isPrivate, "Sala Privada");
 
             if (GUILayout.Button("Update Lobby"))
             {
-                lobbyManager.UpdateLobbyData(isPrivate, lobbyName);
+                sessionManager.UpdateLobbyData(isPrivate, lobbyName);
             }
 
             if (GUILayout.Button("Update Lobby Random"))
             {
-                lobbyManager.UpdateLobbyData(isPrivate, GetRandomLobbyName());
+                sessionManager.UpdateLobbyData(isPrivate, GetRandomLobbyName());
             }
         }
 
         GUILayout.Label("Lobby Options");
-        GUILayout.Label($"Name: {lobbyManager.GetLobbyName()}");
-        GUILayout.Label($"Code: {lobbyManager.GetLobbyCode()}");
-        GUILayout.Label($"Host: {lobbyManager.GetHostID()}");
-        GUILayout.Label($"Privado: {lobbyManager.GetLobbyIsPrivate()}");
+        GUILayout.Label($"Name: {sessionManager.GetLobbyName()}");
+        GUILayout.Label($"Code: {sessionManager.GetLobbyCode()}");
+        GUILayout.Label($"Host: {sessionManager.GetHostID()}");
+        GUILayout.Label($"Privado: {sessionManager.GetLobbyIsPrivate()}");
 
-        foreach (PlayerData player in lobbyManager.GetLobbyPlayers())
+        foreach (PlayerData player in sessionManager.GetLobbyPlayers())
         {
             GUILayout.Space(10);
             GUILayout.Label($"AuthenticateID: {player.AuthenticationID}");
@@ -146,9 +146,9 @@ public class MultiplayerDebugDrawer
             GUILayout.Label($"IsReady: {player.IsReady}");
         }
 
-        if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnLobby)
+        if (sessionManager.GetLobbyState() == LobbyStateEnum.OnLobby)
         {
-            if (lobbyManager.CurrentSession.IsHost == true)
+            if (sessionManager.CurrentSession.OnlineSession.IsHost == true)
             {
                 if (GUILayout.Button("Start Match"))
                 {
@@ -158,12 +158,12 @@ public class MultiplayerDebugDrawer
 
             if (GUILayout.Button("Toggle Ready"))
             {
-                lobbyManager.ToggleCurrentPlayerReady();
+                sessionManager.ToggleCurrentPlayerReady();
             }
         }
-        else if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
+        else if (sessionManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
         {
-            if (lobbyManager.CurrentSession.IsHost == true)
+            if (sessionManager.CurrentSession.OnlineSession.IsHost == true)
             {
                 if (GUILayout.Button("Back To Lobby"))
                 {
@@ -174,9 +174,9 @@ public class MultiplayerDebugDrawer
 
         if (GUILayout.Button("Leave Lobby"))
         {
-            await lobbyManager.LeaveLobby();
+            await sessionManager.LeaveLobby();
 
-            if (lobbyManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
+            if (sessionManager.GetLobbyState() == LobbyStateEnum.OnGameplay)
             {
                 sceneControllerManager.GotoMainMenuScene();
             }

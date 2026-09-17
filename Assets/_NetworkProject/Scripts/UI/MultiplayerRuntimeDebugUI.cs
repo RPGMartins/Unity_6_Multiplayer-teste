@@ -14,7 +14,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
     [SerializeField]
     private Vector2 panelSize = new Vector2(500f, 700f);
 
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
     private NetworkSimulator networkSimulator;
     private SceneControllerManager sceneControllerManager;
     private MultiplayerDebugDrawer sharedDrawer;
@@ -24,7 +24,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
 
     private void Awake()
     {
-        lobbyManager = FindAnyObjectByType<LobbyManager>();
+        sessionManager = FindAnyObjectByType<SessionManager>();
         networkSimulator = FindAnyObjectByType<NetworkSimulator>();
         sceneControllerManager = FindAnyObjectByType<SceneControllerManager>();
 
@@ -60,7 +60,7 @@ public class MultiplayerRuntimeDebugUI : MonoBehaviour
         GUILayout.BeginArea(new Rect(panelPosition.x, panelPosition.y, panelWidth, panelHeight), "Multiplayer Debug", GUI.skin.window);
 
         scrollPosition = GUILayout.BeginScrollView(scrollPosition);
-        sharedDrawer.Draw(lobbyManager, networkSimulator, sceneControllerManager);
+        sharedDrawer.Draw(sessionManager, networkSimulator, sceneControllerManager);
 
         GUILayout.Space(10f);
         GUILayout.Label("F1: mostrar/esconder");

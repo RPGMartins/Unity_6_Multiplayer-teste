@@ -36,9 +36,9 @@ public class LobbyNetworkState : NetworkBehaviour
         lobbyData.Value = new LobbyData(maxPlayers, isPrivate, lobbyName, lobbyCode);
     }
 
-    public void UpdateSessionData(ISession session)
+    public void UpdateSessionData(GameSession session)
     {
-        CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
+        CreateLobbyData(session.OnlineSession.MaxPlayers, session.OnlineSession.IsPrivate, session.OnlineSession.Name, session.OnlineSession.Code);
     }
 
     public void UpdateLobbyStateEnum(LobbyStateEnum lobbyStateEnum)

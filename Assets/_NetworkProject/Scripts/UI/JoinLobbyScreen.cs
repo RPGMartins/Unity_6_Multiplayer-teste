@@ -13,7 +13,7 @@ public class JoinLobbyScreen : UIBase
 
     public void JoinLobby()
     {
-        LobbyManager.Instance.JoinSessionByCode(lobbyCodeInputField.text);
+        SessionManager.Instance.JoinSessionByCode(lobbyCodeInputField.text);
     }
 
     private void TextUpdate(string text)

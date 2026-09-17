@@ -5,7 +5,7 @@ using UnityEngine;
 public class NetworkManagersHolder : MonoBehaviour
 {
     [SerializeField] private AuthenticationManager authenticationManager;
-    [SerializeField] private LobbyManager lobbyManager;
+    [SerializeField] private SessionManager sessionManager;
     [SerializeField] private SceneControllerManager sceneControllerManager;
 
     private void Awake()
@@ -23,6 +23,6 @@ public class NetworkManagersHolder : MonoBehaviour
     {
         yield return null;
 
-        lobbyManager.Initialize();
+        sessionManager.Initialize();
     }
 }

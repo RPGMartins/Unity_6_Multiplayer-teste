@@ -6,15 +6,15 @@ using Unity.Netcode;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
-public class LobbyManager : MonoBehaviour
+public class SessionManager : MonoBehaviour
 {
-    public event Action<ISession> OnSessionConnected;
+    public event Action<GameSession> OnSessionConnected;
     public event Action<SessionError> OnSessionConnectFailed;
-    public event Action<ISession> OnSessionDisconnect;
+    public event Action<GameSession> OnSessionDisconnect;
     public event Action<SessionError> OnSessionDisconnectFailed;
-    public event Action<ISession> OnSessionUpdate;
+    public event Action<GameSession> OnSessionUpdate;
     public event Action<SessionError> OnSessionUpdateFailed;
-    public event Action<ISession> OnRemovePlayerFromSession;
+    public event Action<GameSession> OnRemovePlayerFromSession;
     public event Action<SessionError> OnRemovePlayerFromSessionFailed;
 
     public event Action OnStartTryConnectToSession;
@@ -29,10 +29,10 @@ public class LobbyManager : MonoBehaviour
     [SerializeField] private LobbyNetworkState lobbyNetworkState;
     [SerializeField] private SceneControllerManager sceneControllerManager;
 
-    private ISession currentSession;
-    public ISession CurrentSession => currentSession;
+    private GameSession currentSession;
+    public GameSession CurrentSession => currentSession;
 
-    public static LobbyManager Instance { get; private set; }
+    public static SessionManager Instance { get; private set; }
 
     private void Awake()
     {
@@ -119,41 +119,41 @@ public class LobbyManager : MonoBehaviour
 
     #endregion
 
-    private void PlayerJoinedSession(ISession session)
+    private void PlayerJoinedSession(GameSession session)
     {
         currentSession = session;
-        session.PlayerJoined += PlayerJoined;
-        session.PlayerHasLeft += PlayerLeft;
+        session.OnlineSession.PlayerJoined += PlayerJoined;
+        session.OnlineSession.PlayerHasLeft += PlayerLeft;
 
         StartCoroutine(StartLobby(session));
     }
 
-    private IEnumerator StartLobby(ISession session)
+    private IEnumerator StartLobby(GameSession session)
     {
         yield return new WaitUntil(() => lobbyNetworkState.IsSpawned == true);
 
-        foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
+        foreach (IReadOnlyPlayer readOnlyPlayer in session.OnlineSession.Players)
         {
             PlayerData playerData = new PlayerData(readOnlyPlayer.Id, UInt64.MaxValue, authenticationManager.PlayerName);
 
             lobbyNetworkState.PlayerJoined(playerData);
         }
 
-        lobbyNetworkState.CreateLobbyData(session.MaxPlayers, session.IsPrivate, session.Name, session.Code);
+        lobbyNetworkState.CreateLobbyData(session.OnlineSession.MaxPlayers, session.OnlineSession.IsPrivate, session.OnlineSession.Name, session.OnlineSession.Code);
         lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID.ToString());
     }
 
-    private void PlayerLeftSession(ISession session)
+    private void PlayerLeftSession(GameSession session)
     {
-        session.PlayerJoined -= PlayerJoined;
-        session.PlayerHasLeft -= PlayerLeft;
+        session.OnlineSession.PlayerJoined -= PlayerJoined;
+        session.OnlineSession.PlayerHasLeft -= PlayerLeft;
 
         currentSession = null;
     }
 
     private void PlayerJoined(string id)
     {
-        foreach (IReadOnlyPlayer readOnlyPlayer in currentSession.Players)
+        foreach (IReadOnlyPlayer readOnlyPlayer in currentSession.OnlineSession.Players)
         {
             if (readOnlyPlayer.Id != id)
             {
@@ -169,7 +169,7 @@ public class LobbyManager : MonoBehaviour
 
     private void PlayerLeft(string authenticateID) //Player left session //TODO olhar com mais certeza, se precisa de dois eventos de player saiu
     {
-        if (CurrentSession.IsHost == true)
+        if (CurrentSession.OnlineSession.IsHost == true)
         {
             lobbyNetworkState.PlayerLeft(authenticateID);
 
@@ -195,7 +195,7 @@ public class LobbyManager : MonoBehaviour
         {
             LeaveLobby();
         }
-        else if (CurrentSession.IsServer == true)
+        else if (CurrentSession.OnlineSession.IsServer == true)
         {
             RemovePlayer(playerData.AuthenticationID.ToString());
         }
@@ -203,7 +203,7 @@ public class LobbyManager : MonoBehaviour
 
     private async Task RemovePlayer(string authenticateID)
     {
-        await SessionUtility.RemovePlayerFromSession(currentSession.AsHost(), authenticateID, OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
+        await SessionUtility.RemovePlayerFromSession(currentSession, authenticateID, OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
     }
 
     #region LobbyMethods
@@ -249,7 +249,7 @@ public class LobbyManager : MonoBehaviour
 
     public string GetHostID()
     {
-        return CurrentSession.Host;
+        return CurrentSession.OnlineSession.Host;
     }
 
     public LobbyStateEnum GetLobbyState()

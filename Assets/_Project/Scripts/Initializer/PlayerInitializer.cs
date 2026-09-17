@@ -20,7 +20,7 @@ public class PlayerInitializer : NetworkBehaviour
     private List<FixedString64Bytes> clientsToSpawn = new List<FixedString64Bytes>();
     private List<PlayerController> playerCreatedList = new List<PlayerController>();
 
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
 
     public List<PlayerController> PlayerCreatedList => playerCreatedList;
 
@@ -31,7 +31,7 @@ public class PlayerInitializer : NetworkBehaviour
 
     private void Start()
     {
-        lobbyManager = LobbyManager.Instance;
+        sessionManager = SessionManager.Instance;
 
         if (NetworkConnectionChecker.CheckConnection() == true)
         {
@@ -74,7 +74,7 @@ public class PlayerInitializer : NetworkBehaviour
         {
             ulong clientID = 0;
             FixedString64Bytes playerID = clientsToSpawn[i];
-            List<PlayerData> lobbyPlayers = lobbyManager.GetLobbyPlayers();
+            List<PlayerData> lobbyPlayers = sessionManager.GetLobbyPlayers();
 
             foreach (PlayerData playerData in lobbyPlayers)
             {

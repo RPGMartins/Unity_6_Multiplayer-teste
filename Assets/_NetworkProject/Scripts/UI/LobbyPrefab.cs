@@ -17,6 +17,6 @@ public class LobbyPrefab : MonoBehaviour
 
     public void JoinLobby()
     {
-        LobbyManager.Instance.JoinSessionByID(currentSessionInfo.Id);
+        SessionManager.Instance.JoinSessionByID(currentSessionInfo.Id);
     }
 }

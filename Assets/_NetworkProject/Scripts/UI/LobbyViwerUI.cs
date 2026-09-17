@@ -13,24 +13,24 @@ public class LobbyViwerUI : UIBase
 
     private List<PlayerInLobby> playerInLobbyList = new List<PlayerInLobby>();
 
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
 
     private void Start()
     {
-        lobbyManager = LobbyManager.Instance;
-        lobbyManager.OnLobbyUpdated += UpdateLobbyData;
-        lobbyManager.OnPlayersUpdated += UpdatePlayerData;
+        sessionManager = SessionManager.Instance;
+        sessionManager.OnLobbyUpdated += UpdateSessionData;
+        sessionManager.OnPlayersUpdated += UpdatePlayerData;
     }
 
     private void OnDestroy()
     {
-        if (lobbyManager == null)
+        if (sessionManager == null)
         {
             return;
         }
 
-        lobbyManager.OnLobbyUpdated -= UpdateLobbyData;
-        lobbyManager.OnPlayersUpdated -= UpdatePlayerData;
+        sessionManager.OnLobbyUpdated -= UpdateSessionData;
+        sessionManager.OnPlayersUpdated -= UpdatePlayerData;
     }
 
     public void Initialize()
@@ -42,15 +42,15 @@ public class LobbyViwerUI : UIBase
             RemovePlayer(playerInLobby);
         }
 
-        foreach (PlayerData playerData in LobbyManager.Instance.GetLobbyPlayers())
+        foreach (PlayerData playerData in SessionManager.Instance.GetLobbyPlayers())
         {
             AddPlayer(playerData);
         }
 
-        UpdateLobbyData(LobbyManager.Instance.GetLobbyData());
+        UpdateSessionData(SessionManager.Instance.GetLobbyData());
     }
 
-    private void UpdateLobbyData(LobbyData lobbyData)
+    private void UpdateSessionData(LobbyData lobbyData)
     {
         lobbyNameText.text = lobbyData.LobbyName.Value;
         lobbyCodeText.text = lobbyData.LobbyCode.Value;
@@ -118,11 +118,11 @@ public class LobbyViwerUI : UIBase
 
     public void ToggleReady()
     {
-        lobbyManager.ToggleCurrentPlayerReady();
+        sessionManager.ToggleCurrentPlayerReady();
     }
 
     public async void LeaveLobby()
     {
-        await lobbyManager.LeaveLobby();
+        await sessionManager.LeaveLobby();
     }
 }

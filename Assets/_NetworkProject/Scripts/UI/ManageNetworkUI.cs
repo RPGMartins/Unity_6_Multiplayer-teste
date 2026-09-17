@@ -15,21 +15,21 @@ public class ManageNetworkUI : MonoBehaviour
     [SerializeField] private JoinLobbyScreen joinLobbyScreen;
     [SerializeField] private CreateLobbyScreen createLobbyScreen;
     [SerializeField] private MenuLayout menuLayout;
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
     private bool isVisible;
 
     private void Start()
     {
-        lobbyManager = LobbyManager.Instance;
+        sessionManager = SessionManager.Instance;
 
-        lobbyManager.OnStartTryConnectToSession += OpenLoadScreen;
-        lobbyManager.OnStartTryDisconnectFromSession += OpenLoadScreen;
+        sessionManager.OnStartTryConnectToSession += OpenLoadScreen;
+        sessionManager.OnStartTryDisconnectFromSession += OpenLoadScreen;
 
-        lobbyManager.OnSessionConnected += OpenLobbyViewerUI;
-        lobbyManager.OnSessionDisconnect += OpenMainMenuNetworkSession;
+        sessionManager.OnSessionConnected += OpenSessionViewerUI;
+        sessionManager.OnSessionDisconnect += OpenMainMenuNetworkSession;
 
-        lobbyManager.OnSessionConnectFailed += OpenErrorScreenUI;
-        lobbyManager.OnSessionDisconnectFailed += OpenErrorScreenUI;
+        sessionManager.OnSessionConnectFailed += OpenErrorScreenUI;
+        sessionManager.OnSessionDisconnectFailed += OpenErrorScreenUI;
 
         OpenMainMenuNetwork();
     }
@@ -85,7 +85,7 @@ public class ManageNetworkUI : MonoBehaviour
         createLobbyScreen.OpenScreen();
     }
 
-    private void OpenMainMenuNetworkSession(ISession session)
+    private void OpenMainMenuNetworkSession(GameSession session)
     {
         OpenMainMenuNetwork();
     }
@@ -96,7 +96,7 @@ public class ManageNetworkUI : MonoBehaviour
         loadScreen.gameObject.SetActive(true);
     }
 
-    public void OpenLobbyViewerUI(ISession session)
+    public void OpenSessionViewerUI(GameSession session)
     {
         OpenLobbyViewerUINetwork();
         lobbyViwerUI.Initialize();
@@ -117,13 +117,13 @@ public class ManageNetworkUI : MonoBehaviour
 
     public void QuickJoinLobby()
     {
-        lobbyManager.QuickJoinSession();
+        sessionManager.QuickJoinSession();
     }
 
     public void CreateRandomLobby()
     {
         SessionOptions options = MultiplayerDebugDrawer.CreateSessionOptions().WithRelayNetwork();
-        lobbyManager.CreateSession(options);
+        sessionManager.CreateSession(options);
     }
 
     private void CloseAll()

@@ -11,7 +11,7 @@ public class SceneControllerManager : NetworkBehaviour
     [SerializeField] private string gameplaySceneName = "Mapa1";
 
     private NetworkSceneManager networkSceneManager;
-    private LobbyManager lobbyManager;
+    private SessionManager sessionManager;
     private Action<LobbyStateEnum> lobbyStateCallback;
     public static SceneControllerManager Instance { get; private set; }
 
@@ -34,12 +34,12 @@ public class SceneControllerManager : NetworkBehaviour
         networkSceneManager.OnSynchronizeComplete -= NetworkSceneManagerOnOnSynchronizeComplete;
     }
 
-    public void Initiliaze(Action<LobbyStateEnum> lobbyStateCallback, LobbyManager lobbyManager)
+    public void Initiliaze(Action<LobbyStateEnum> lobbyStateCallback, SessionManager sessionManager)
     {
         this.lobbyStateCallback = lobbyStateCallback;
-        this.lobbyManager = lobbyManager;
+        this.sessionManager = sessionManager;
 
-        lobbyManager.OnSessionDisconnect += (_) => GotoMainMenuScene();
+        sessionManager.OnSessionDisconnect += (_) => GotoMainMenuScene();
     }
 
     [ContextMenu("GotoGameplayScene")]
@@ -135,7 +135,7 @@ public class SceneControllerManager : NetworkBehaviour
 
     private FixedString64Bytes GetPlayerAuthenticateIDByClientID(ulong clientID)
     {
-        foreach (PlayerData playerData in LobbyManager.Instance.GetLobbyPlayers())
+        foreach (PlayerData playerData in SessionManager.Instance.GetLobbyPlayers())
         {
             if (playerData.ClientId == clientID)
             {
