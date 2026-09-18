@@ -1,12 +1,11 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unity.Collections;
 using Unity.Netcode;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
-public class SessionManager : MonoBehaviour
+public class SessionManager : NetworkBehaviour
 {
     public event Action<GameSession> OnSessionConnected;
     public event Action<SessionError> OnSessionConnectFailed;
@@ -22,14 +21,9 @@ public class SessionManager : MonoBehaviour
     public event Action OnStartTrySessionUpdate;
     public event Action OnStartTryRemovePlayerFromSession;
 
-    public event Action<SessionData> OnLobbyUpdated;
-    public event Action<PlayerData, NetworkListEvent<PlayerData>.EventType> OnPlayersUpdated;
-
     [SerializeField] private AuthenticationManager authenticationManager;
-    [SerializeField] private LobbyNetworkState lobbyNetworkState;
     [SerializeField] private SceneControllerManager sceneControllerManager;
-
-    private GameSession currentSession;
+    [SerializeField] private GameSession currentSession;
     public GameSession CurrentSession => currentSession;
 
     public static SessionManager Instance { get; private set; }
@@ -39,30 +33,10 @@ public class SessionManager : MonoBehaviour
         Instance = this;
     }
 
-    public void Initialize()
-    {
-        OnSessionConnected += PlayerJoinedSession;
-        OnSessionDisconnect += PlayerLeftSession;
-        OnSessionUpdate += lobbyNetworkState.UpdateSessionData;
-
-        lobbyNetworkState.LobbyData.OnValueChanged += LobbyDataValueChanged;
-        lobbyNetworkState.PlayersState.OnListChanged += LobbyPlayersDataChanged;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
-
-        sceneControllerManager.Initiliaze(OnChangeScene, this);
-    }
-
     private void OnDestroy()
     {
         OnSessionConnected -= PlayerJoinedSession;
         OnSessionDisconnect -= PlayerLeftSession;
-        OnSessionUpdate -= lobbyNetworkState.UpdateSessionData;
-
-        if (lobbyNetworkState != null)
-        {
-            lobbyNetworkState.LobbyData.OnValueChanged -= LobbyDataValueChanged;
-            lobbyNetworkState.PlayersState.OnListChanged -= LobbyPlayersDataChanged;
-        }
 
         if (NetworkManager.Singleton != null)
         {
@@ -70,36 +44,33 @@ public class SessionManager : MonoBehaviour
         }
     }
 
-    private void LobbyDataValueChanged(SessionData previousValue, SessionData newValue)
+    public void Initialize()
     {
-        OnLobbyUpdated?.Invoke(newValue);
-    }
-
-    private void LobbyPlayersDataChanged(NetworkListEvent<PlayerData> changeEvent)
-    {
-        OnPlayersUpdated?.Invoke(changeEvent.Value, changeEvent.Type);
+        OnSessionConnected += PlayerJoinedSession;
+        OnSessionDisconnect += PlayerLeftSession;
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
 
     #region Session
 
     public async Task CreateSession(SessionOptions sessionOptions)
     {
-        await SessionUtility.CreateSessionAsHost(sessionOptions, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.CreateSessionAsHost(currentSession, sessionOptions, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task JoinSessionByCode(string joinCode)
     {
-        await SessionUtility.JoinSessionByCode(joinCode, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.JoinSessionByCode(joinCode, currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task JoinSessionByID(string sessionID)
     {
-        await SessionUtility.JoinSessionByID(sessionID, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.JoinSessionByID(sessionID, currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task QuickJoinSession()
     {
-        await SessionUtility.QuickJoinLobby(OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.QuickJoinLobby(currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task ReconnectSession()
@@ -122,143 +93,44 @@ public class SessionManager : MonoBehaviour
     private void PlayerJoinedSession(GameSession session)
     {
         currentSession = session;
-        session.PlayerJoined += PlayerJoined;
-        session.PlayerHasLeft += PlayerLeft;
-
-        StartCoroutine(StartLobby(session));
-    }
-
-    private IEnumerator StartLobby(GameSession session)
-    {
-        yield return new WaitUntil(() => lobbyNetworkState.IsSpawned == true);
-
-        foreach (PlayerData tempPlayerData in session.CurrentPlayersOnSession)
-        {
-            lobbyNetworkState.PlayerJoined(tempPlayerData);
-        }
-
-        lobbyNetworkState.CreateLobbyData(session.SessionData);
-        lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID.ToString());
+        session.PlayerLeftaaa += PlayerLeftaaa;
     }
 
     private void PlayerLeftSession(GameSession session)
     {
-        session.PlayerJoined -= PlayerJoined;
-        session.PlayerHasLeft -= PlayerLeft;
-
+        session.PlayerLeftaaa -= PlayerLeftaaa;
         currentSession = null;
     }
 
-    private void PlayerJoined(string id)
+    private void PlayerLeftaaa(string playerID)
     {
-        foreach (PlayerData playerData in currentSession.CurrentPlayersOnSession)
+        if (authenticationManager.AuthenticationID == playerID)
         {
-            if (playerData.ClientId.ToString() != id)
-            {
-                continue;
-            }
-
-            lobbyNetworkState.PlayerJoined(new PlayerData(id, UInt64.MaxValue, "GuestPlayer", false));
-            lobbyNetworkState.UpdatePlayerIDRpc(authenticationManager.AuthenticationID.ToString());
-
-            break;
-        }
-    }
-
-    private void PlayerLeft(string authenticateID) //Player left session //TODO olhar com mais certeza, se precisa de dois eventos de player saiu
-    {
-        if (CurrentSession.IsHost() == true)
-        {
-            lobbyNetworkState.PlayerLeft(authenticateID);
-
-            if (authenticationManager.AuthenticationID == authenticateID)
-            {
-                LeaveLobby();
-            }
-        }
-        else
-        {
-            if (authenticationManager.AuthenticationID == authenticateID)
-            {
-                LeaveLobby();
-            }
+            LeaveLobby();
         }
     }
 
     private void OnClientDisconnected(ulong clientID)
     {
-        PlayerData playerData = lobbyNetworkState.GetPlayerDataByClientID(clientID);
+        bool hasPlayer = currentSession.GetPlayerDataByClientID(clientID, out PlayerData playerData);
+
+        if (hasPlayer == false)
+        {
+            return;
+        }
 
         if (playerData.AuthenticationID == authenticationManager.AuthenticationID)
         {
             LeaveLobby();
         }
-        else if (CurrentSession.IsServer() == true)
+        else if (CurrentSession.HasHostAuthority() == true)
         {
-            RemovePlayer(playerData.AuthenticationID.ToString());
+            RemovePlayerFromSession(playerData.AuthenticationID);
         }
     }
 
-    private async Task RemovePlayer(string authenticateID)
+    private async Task RemovePlayerFromSession(FixedString64Bytes playerID)
     {
-        await SessionUtility.RemovePlayerFromSession(currentSession, authenticateID, OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
+        await SessionUtility.RemovePlayerFromSession(currentSession, playerID, OnStartTryRemovePlayerFromSession, OnRemovePlayerFromSession, OnRemovePlayerFromSessionFailed);
     }
-
-    #region LobbyMethods
-
-    public void ToggleCurrentPlayerReady()
-    {
-        lobbyNetworkState.TogglePlayerReady(authenticationManager.AuthenticationID);
-    }
-
-    private void OnChangeScene(LobbyStateEnum lobbyStateEnum)
-    {
-        lobbyNetworkState.UpdateLobbyStateEnum(lobbyStateEnum);
-    }
-
-    #endregion
-
-    #region Uttils
-
-    public SessionData GetLobbyData()
-    {
-        return lobbyNetworkState.LobbyData.Value;
-    }
-
-    public string GetLobbyName()
-    {
-        return lobbyNetworkState.LobbyData.Value.LobbyName.Value;
-    }
-
-    public string GetLobbyCode()
-    {
-        return lobbyNetworkState.LobbyData.Value.LobbyCode.Value;
-    }
-
-    public bool GetLobbyIsPrivate()
-    {
-        return lobbyNetworkState.LobbyData.Value.IsPrivate;
-    }
-
-    public List<PlayerData> GetLobbyPlayers()
-    {
-        return lobbyNetworkState.GetLobbyPlayers();
-    }
-
-    public string GetHostID()
-    {
-        return "CurrentSession.OnlineSession.Host";
-    }
-
-    public LobbyStateEnum GetLobbyState()
-    {
-        if (lobbyNetworkState.IsSpawned == true)
-        {
-            return lobbyNetworkState.LobbyStateEnum.Value;
-        }
-
-        return LobbyStateEnum.OnLobby;
-    }
-
-    #endregion
 }

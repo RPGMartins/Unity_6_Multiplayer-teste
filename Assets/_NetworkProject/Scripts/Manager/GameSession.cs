@@ -1,34 +1,224 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Unity.Collections;
+using Unity.Netcode;
 using Unity.Services.Multiplayer;
 using UnityEngine;
 
-public class GameSession
+public class GameSession : NetworkBehaviour
 {
-    public event Action<string> PlayerJoined;
-    public event Action<string> PlayerHasLeft;
+    public event Action<PlayerData> PlayerHasJoined;
+    public event Action<string> PlayerLeftaaa;
+    public event Action<SessionData> OnSessionUpdated;
+    public event Action<PlayerData, NetworkListEvent<PlayerData>.EventType> OnPlayersUpdated;
 
-    private SessionData sessionData;
+    [SerializeField] private AuthenticationManager authenticationManager;
+    [SerializeField] private SessionData sessionData;
+    [SerializeField] private List<PlayerData> currentPlayersOnSession = new List<PlayerData>();
+
     private ISession onlineSession;
-    private List<PlayerData> currentPlayersOnSession = new List<PlayerData>();
+    private SessionStateEnum sessionStateEnum = SessionStateEnum.OnLobby;
+
+    private NetworkVariable<SessionData> networkSessionData = new NetworkVariable<SessionData>();
+    private NetworkList<PlayerData> networkCurrentPlayersOnSession;
+    private NetworkVariable<SessionStateEnum> networkSessionStateEnum = new NetworkVariable<SessionStateEnum>();
 
     public SessionData SessionData => sessionData;
     private bool IsOnline => onlineSession != null;
     public List<PlayerData> CurrentPlayersOnSession => currentPlayersOnSession;
 
-    public GameSession(ISession onlineSession)
+    private void Awake()
     {
-        this.onlineSession = onlineSession;
-
-        onlineSession.PlayerJoined += PlayerJoined;
-        onlineSession.PlayerHasLeft += PlayerHasLeft;
+        networkCurrentPlayersOnSession = new NetworkList<PlayerData>(null, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
     }
 
-    public GameSession(SessionData sessionData, ISession onlineSession) : this(onlineSession)
+    public override void OnNetworkSpawn()
     {
-        this.sessionData = sessionData;
+        networkSessionData.Value = new SessionData();
+        networkCurrentPlayersOnSession.Clear();
+        networkSessionStateEnum.Value = SessionStateEnum.OnLobby;
+
+        networkSessionData.OnValueChanged += LobbyDataValueChanged;
+        networkCurrentPlayersOnSession.OnListChanged += HandleLobbyPlayersDataChanged;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        networkSessionData.OnValueChanged -= LobbyDataValueChanged;
+        networkCurrentPlayersOnSession.OnListChanged -= HandleLobbyPlayersDataChanged;
+    }
+
+    #region PlayerJoin
+
+    private void PlayerJoined(string clientId)
+    {
+        PlayerData playerData = CreateGuestPlayer(clientId);
+        PlayerJoined(playerData);
+    }
+
+    private void PlayerJoined(PlayerData playerData)
+    {
+        if (HasHostAuthority() == false)
+        {
+            return;
+        }
+
+        if (IsOnline == true)
+        {
+            foreach (PlayerData tempPlayerData in networkCurrentPlayersOnSession)
+            {
+                if (tempPlayerData.AuthenticationID == playerData.AuthenticationID)
+                {
+                    return;
+                }
+            }
+
+            networkCurrentPlayersOnSession.Add(playerData);
+
+            return;
+        }
+
+        foreach (PlayerData tempPlayerData in currentPlayersOnSession)
+        {
+            if (tempPlayerData.AuthenticationID == playerData.AuthenticationID)
+            {
+                return;
+            }
+        }
+
+        AddPlayerLocalToList(playerData);
+    }
+
+    private void PlayerJoinedCallback(PlayerData playerData)
+    {
+        PlayerHasJoined?.Invoke(playerData);
+    }
+
+    #endregion
+
+    #region JoinLeft
+
+    private void PlayerHasLeft(string playerID)
+    {
+        PlayerLeftSession(playerID);
+        PlayerLeftaaa?.Invoke(playerID);
+    }
+
+    private void PlayerLeftSession(FixedString64Bytes playerID)
+    {
+        if (HasHostAuthority() == false)
+        {
+            return;
+        }
+
+        bool hasPlayer = GetPlayerDataByPlayerID(playerID, out PlayerData playerData);
+
+        if (hasPlayer == false)
+        {
+            return;
+        }
+
+        if (IsOnline == true)
+        {
+            networkCurrentPlayersOnSession.Remove(playerData);
+        }
+        else
+        {
+            currentPlayersOnSession.Remove(playerData);
+        }
+    }
+
+    private PlayerData CreateGuestPlayer(FixedString64Bytes guestPlayerID)
+    {
+        return new PlayerData(guestPlayerID, UInt64.MaxValue, "Guest", false); //TODO pegar esse nome de algum lugar
+    }
+
+    #endregion
+
+    private void LobbyDataValueChanged(SessionData previousValue, SessionData newValue)
+    {
+        OnSessionUpdated?.Invoke(newValue);
+    }
+
+    private void HandleLobbyPlayersDataChanged(NetworkListEvent<PlayerData> changeEvent)
+    {
+        switch (changeEvent.Type)
+        {
+            case NetworkListEvent<PlayerData>.EventType.Add:
+                AddPlayerLocalToList(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Remove:
+                currentPlayersOnSession.Remove(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Value:
+                UpdateLocalPlayerData(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Clear:
+                break;
+        }
+
+        OnPlayersUpdated?.Invoke(changeEvent.Value, changeEvent.Type);
+    }
+
+    private void AddPlayerLocalToList(PlayerData playerData)
+    {
+        currentPlayersOnSession.Add(playerData);
+        PlayerJoinedCallback(playerData);
+    }
+
+    public void Initialize(ISession session, SessionData sessionData)
+    {
+        StartCoroutine(WaitNetworkBehaviorSpawn(AfterSpawnCallback));
+
+        void AfterSpawnCallback()
+        {
+            this.sessionData = sessionData;
+            this.onlineSession = session;
+            Initialize(session);
+            UpdatePlayerIDRpc();
+        }
+    }
+
+    public void Initialize(ISession session) //TODO deixar privado
+    {
+        onlineSession.PlayerJoined += PlayerJoined;
+        onlineSession.PlayerHasLeft += PlayerHasLeft;
+
+        foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
+        {
+            PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
+            PlayerJoined(playerData);
+        }
+    }
+
+    private IEnumerator WaitNetworkBehaviorSpawn(Action callback)
+    {
+        yield return new WaitUntil(() => IsSpawned == true);
+
+        callback.Invoke();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void UpdatePlayerIDRpc(RpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        bool hasPlayer = GetPlayerDataByClientID(clientId, out PlayerData playerData);
+
+        if (hasPlayer == false)
+        {
+            return;
+        }
+
+        playerData.SetClientID(clientId);
+        UpdatePlayerData(playerData);
     }
 
     public async Task RefreshAsync()
@@ -87,9 +277,46 @@ public class GameSession
         }
     }
 
+    #region Ready
+
+    public void ToggleCurrentPlayerReady()
+    {
+        TogglePlayerReady(authenticationManager.AuthenticationID);
+    }
+
+    private void TogglePlayerReady(FixedString64Bytes playerID)
+    {
+        if (HasHostAuthority() == false)
+        {
+            TogglePlayerReadyRpc(playerID);
+
+            return;
+        }
+
+        bool hasPlayer = GetPlayerDataByPlayerID(playerID, out PlayerData playerData);
+
+        if (hasPlayer == false)
+        {
+            throw new Exception($"Player {playerID.Value} not found");
+        }
+
+        playerData.ToggleReady();
+        UpdatePlayerData(playerData);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void TogglePlayerReadyRpc(FixedString64Bytes playerID)
+    {
+        TogglePlayerReady(playerID);
+    }
+
+    #endregion
+
+    #region Data
+
     public async Task UpdateSessionData(string lobbyName, bool isPrivate)
     {
-        if (IsHost() == false)
+        if (HasHostAuthority() == false)
         {
             return;
         }
@@ -105,22 +332,45 @@ public class GameSession
         sessionData = new SessionData(sessionData.MaxPlayers, isPrivate, lobbyName, sessionData.LobbyCode);
     }
 
-    #region UTILS
-
-    public bool HasPlayer(FixedString64Bytes playerID)
+    private void UpdatePlayerData(PlayerData playerData)
     {
-        foreach (PlayerData playerData in currentPlayersOnSession)
+        if (IsOnline == true)
         {
-            if (playerData.AuthenticationID.Value == playerID.Value)
-            {
-                return true;
-            }
+            UpdateNetworkPlayerData(playerData);
         }
-
-        return false;
+        else
+        {
+            UpdateLocalPlayerData(playerData);
+        }
     }
 
-    public bool IsHost()
+    private void UpdateNetworkPlayerData(PlayerData playerData)
+    {
+        for (int i = 0; i < networkCurrentPlayersOnSession.Count; i++)
+        {
+            if (networkCurrentPlayersOnSession[i].AuthenticationID.Value == playerData.AuthenticationID)
+            {
+                networkCurrentPlayersOnSession[i] = playerData;
+            }
+        }
+    }
+
+    private void UpdateLocalPlayerData(PlayerData playerData)
+    {
+        for (int i = 0; i < currentPlayersOnSession.Count; i++)
+        {
+            if (currentPlayersOnSession[i].AuthenticationID.Value == playerData.AuthenticationID)
+            {
+                currentPlayersOnSession[i] = playerData;
+            }
+        }
+    }
+
+    #endregion
+
+    #region UTILS
+
+    public bool HasHostAuthority()
     {
         if (IsOnline == false)
         {
@@ -130,14 +380,76 @@ public class GameSession
         return onlineSession.IsHost;
     }
 
-    public bool IsServer()
+    public bool GetPlayerDataByClientID(ulong clientID, out PlayerData returnPlayerData)
     {
-        if (IsOnline == false)
+        if (IsOnline == true)
         {
-            return true;
+            foreach (PlayerData playerData in networkCurrentPlayersOnSession)
+            {
+                if (playerData.ClientId != clientID)
+                {
+                    continue;
+                }
+
+                returnPlayerData = playerData;
+
+                return true;
+            }
+        }
+        else
+        {
+            foreach (PlayerData playerData in currentPlayersOnSession)
+            {
+                if (playerData.ClientId != clientID)
+                {
+                    continue;
+                }
+
+                returnPlayerData = playerData;
+
+                return true;
+            }
         }
 
-        return onlineSession.IsServer;
+        returnPlayerData = default;
+
+        return false;
+    }
+
+    public bool GetPlayerDataByPlayerID(FixedString64Bytes playerID, out PlayerData returnPlayerData)
+    {
+        if (IsOnline == true)
+        {
+            foreach (PlayerData playerData in networkCurrentPlayersOnSession)
+            {
+                if (playerData.AuthenticationID != playerID)
+                {
+                    continue;
+                }
+
+                returnPlayerData = playerData;
+
+                return true;
+            }
+        }
+        else
+        {
+            foreach (PlayerData playerData in currentPlayersOnSession)
+            {
+                if (playerData.AuthenticationID != playerID)
+                {
+                    continue;
+                }
+
+                returnPlayerData = playerData;
+
+                return true;
+            }
+        }
+
+        returnPlayerData = default;
+
+        return false;
     }
 
     #endregion

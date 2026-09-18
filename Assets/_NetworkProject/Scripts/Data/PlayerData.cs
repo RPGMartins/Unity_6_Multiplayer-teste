@@ -1,12 +1,13 @@
 using System;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 [Serializable]
 public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
 {
-    private bool isReady;
-    private ulong clientId;
+    [SerializeField] private bool isReady;
+    [SerializeField] private ulong clientId;
     private bool isHost;
     public FixedString64Bytes name;
     public FixedString64Bytes authenticationID;

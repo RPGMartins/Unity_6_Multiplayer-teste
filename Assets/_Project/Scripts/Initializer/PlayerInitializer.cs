@@ -74,9 +74,8 @@ public class PlayerInitializer : NetworkBehaviour
         {
             ulong clientID = 0;
             FixedString64Bytes playerID = clientsToSpawn[i];
-            List<PlayerData> lobbyPlayers = sessionManager.GetLobbyPlayers();
 
-            foreach (PlayerData playerData in lobbyPlayers)
+            foreach (PlayerData playerData in sessionManager.CurrentSession.CurrentPlayersOnSession)
             {
                 if (playerData.AuthenticationID != clientsToSpawn[i])
                 {

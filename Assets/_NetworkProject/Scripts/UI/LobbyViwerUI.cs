@@ -18,8 +18,8 @@ public class LobbyViwerUI : UIBase
     private void Start()
     {
         sessionManager = SessionManager.Instance;
-        sessionManager.OnLobbyUpdated += UpdateSessionData;
-        sessionManager.OnPlayersUpdated += UpdatePlayerData;
+        sessionManager.CurrentSession.OnSessionUpdated += UpdateSessionData;
+        sessionManager.CurrentSession.OnPlayersUpdated += UpdatePlayerData;
     }
 
     private void OnDestroy()
@@ -29,8 +29,8 @@ public class LobbyViwerUI : UIBase
             return;
         }
 
-        sessionManager.OnLobbyUpdated -= UpdateSessionData;
-        sessionManager.OnPlayersUpdated -= UpdatePlayerData;
+        sessionManager.CurrentSession.OnSessionUpdated -= UpdateSessionData;
+        sessionManager.CurrentSession.OnPlayersUpdated -= UpdatePlayerData;
     }
 
     public void Initialize()
@@ -42,12 +42,12 @@ public class LobbyViwerUI : UIBase
             RemovePlayer(playerInLobby);
         }
 
-        foreach (PlayerData playerData in SessionManager.Instance.GetLobbyPlayers())
+        foreach (PlayerData playerData in sessionManager.CurrentSession.CurrentPlayersOnSession)
         {
             AddPlayer(playerData);
         }
 
-        UpdateSessionData(SessionManager.Instance.GetLobbyData());
+        UpdateSessionData(sessionManager.CurrentSession.SessionData);
     }
 
     private void UpdateSessionData(SessionData sessionData)
@@ -118,7 +118,7 @@ public class LobbyViwerUI : UIBase
 
     public void ToggleReady()
     {
-        sessionManager.ToggleCurrentPlayerReady();
+        sessionManager.CurrentSession.ToggleCurrentPlayerReady();
     }
 
     public async void LeaveLobby()

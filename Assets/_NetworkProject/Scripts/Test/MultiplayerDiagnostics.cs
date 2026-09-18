@@ -315,8 +315,8 @@ public class MultiplayerDiagnostics : MonoBehaviour
 
             Debug.Log(
                 $"[NGO] IsListening       = {networkManager.IsListening}\n" +
-                $"[NGO] IsHost            = {networkManager.IsHost}\n" +
-                $"[NGO] IsServer          = {networkManager.IsServer}\n" +
+                $"[NGO] HasHostAuthority            = {networkManager.IsHost}\n" +
+                $"[NGO] HasServerAuthority          = {networkManager.IsServer}\n" +
                 $"[NGO] IsClient          = {networkManager.IsClient}\n" +
                 $"[NGO] IsConnectedClient = {networkManager.IsConnectedClient}"
             );

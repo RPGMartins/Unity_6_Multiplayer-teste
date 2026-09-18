@@ -4,9 +4,12 @@ using Unity.Services.Multiplayer;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class ManageNetworkUI : MonoBehaviour
 {
+    private static readonly string[] serverNames = new[] { "Ands Server", "Kkesls Server", " Matrins Server" };
+
     [SerializeField] private LobbiesUI lobbiesUI;
     [SerializeField] private LobbyViwerUI lobbyViwerUI;
     [SerializeField] private ErrorScreenUI errorScreenUI;
@@ -122,7 +125,7 @@ public class ManageNetworkUI : MonoBehaviour
 
     public void CreateRandomLobby()
     {
-        SessionOptions options = MultiplayerDebugDrawer.CreateSessionOptions().WithRelayNetwork();
+        SessionOptions options = CreateSessionOptions().WithRelayNetwork();
         sessionManager.CreateSession(options);
     }
 
@@ -134,6 +137,35 @@ public class ManageNetworkUI : MonoBehaviour
         errorScreenUI.CloseScreen();
         joinLobbyScreen.CloseScreen();
         createLobbyScreen.CloseScreen();
+    }
+
+    public static SessionOptions CreateSessionOptions(string name = "", bool isPrivate = false, int maxPlayers = -1, string password = "")
+    {
+        if (name == string.Empty)
+        {
+            name = GetRandomLobbyName();
+        }
+
+        if (maxPlayers == -1)
+        {
+            maxPlayers = Random.Range(3, 8);
+        }
+
+        SessionOptions options = new SessionOptions
+        {
+            Type = "Lobby",
+            Name = name,
+            MaxPlayers = maxPlayers,
+            IsPrivate = isPrivate,
+            Password = string.IsNullOrWhiteSpace(password) ? null : password
+        };
+
+        return options;
+    }
+
+    private static string GetRandomLobbyName()
+    {
+        return serverNames[Random.Range(0, serverNames.Length)];
     }
 }
 

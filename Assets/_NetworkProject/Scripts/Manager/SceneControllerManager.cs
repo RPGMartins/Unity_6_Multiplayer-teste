@@ -12,7 +12,7 @@ public class SceneControllerManager : NetworkBehaviour
 
     private NetworkSceneManager networkSceneManager;
     private SessionManager sessionManager;
-    private Action<LobbyStateEnum> lobbyStateCallback;
+    private Action<SessionStateEnum> lobbyStateCallback;
     public static SceneControllerManager Instance { get; private set; }
 
     private void Awake()
@@ -34,7 +34,7 @@ public class SceneControllerManager : NetworkBehaviour
         networkSceneManager.OnSynchronizeComplete -= NetworkSceneManagerOnOnSynchronizeComplete;
     }
 
-    public void Initiliaze(Action<LobbyStateEnum> lobbyStateCallback, SessionManager sessionManager)
+    public void Initiliaze(Action<SessionStateEnum> lobbyStateCallback, SessionManager sessionManager)
     {
         this.lobbyStateCallback = lobbyStateCallback;
         this.sessionManager = sessionManager;
@@ -67,14 +67,14 @@ public class SceneControllerManager : NetworkBehaviour
         {
             SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
 
-            LobbyStateEnum lobbyStateEnumToGo = LobbyStateEnum.OnLobby;
+            SessionStateEnum sessionStateEnumToGo = SessionStateEnum.OnLobby;
 
             if (sceneName == gameplaySceneName)
             {
-                lobbyStateEnumToGo = LobbyStateEnum.OnGameplay;
+                sessionStateEnumToGo = SessionStateEnum.OnGameplay;
             }
 
-            lobbyStateCallback?.Invoke(lobbyStateEnumToGo);
+            lobbyStateCallback?.Invoke(sessionStateEnumToGo);
         }
     }
 
@@ -87,7 +87,7 @@ public class SceneControllerManager : NetworkBehaviour
 
         if (sceneName == gameplaySceneName) // criar uma classe GameplayInitializer, em que vai passar a lista de clients, e ela vai incializar tudo certinho
         {
-            lobbyStateCallback?.Invoke(LobbyStateEnum.OnGameplay);
+            lobbyStateCallback?.Invoke(SessionStateEnum.OnGameplay);
             List<FixedString64Bytes> playerIds = new List<FixedString64Bytes>();
 
             foreach (ulong clientID in clientsCompleted)
@@ -104,7 +104,7 @@ public class SceneControllerManager : NetworkBehaviour
         }
         else if (sceneName == mainMenuSceneName)
         {
-            lobbyStateCallback?.Invoke(LobbyStateEnum.OnLobby);
+            lobbyStateCallback?.Invoke(SessionStateEnum.OnLobby);
         }
     }
 
@@ -135,14 +135,13 @@ public class SceneControllerManager : NetworkBehaviour
 
     private FixedString64Bytes GetPlayerAuthenticateIDByClientID(ulong clientID)
     {
-        foreach (PlayerData playerData in SessionManager.Instance.GetLobbyPlayers())
+        bool hasPlayer = sessionManager.CurrentSession.GetPlayerDataByClientID(clientID, out PlayerData playerData);
+
+        if (hasPlayer == false)
         {
-            if (playerData.ClientId == clientID)
-            {
-                return playerData.AuthenticationID;
-            }
+            return null;
         }
 
-        return null;
+        return playerData.AuthenticationID;
     }
 }

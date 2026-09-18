@@ -1,12 +1,13 @@
 using System;
 using Unity.Collections;
 using Unity.Netcode;
+using UnityEngine;
 
 [Serializable]
 public struct SessionData : INetworkSerializable, IEquatable<SessionData>
 {
-    private int maxPlayers;
-    private bool isPrivate;
+    [SerializeField] private int maxPlayers;
+    [SerializeField] private bool isPrivate;
     private FixedString64Bytes lobbyName;
     private FixedString64Bytes lobbyCode;
 

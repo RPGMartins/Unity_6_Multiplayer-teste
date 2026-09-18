@@ -14,7 +14,7 @@ public class CreateLobbyScreen : UIBase
     public void CreateLobby()
     {
         int.TryParse(lobbyQuantityInputField.text, out int playerQuantity);
-        SessionOptions options = MultiplayerDebugDrawer.CreateSessionOptions(lobbyNameInputField.text, isPrivateToggle.isOn, playerQuantity, lobbyPasswordInputField.text).WithRelayNetwork();
+        SessionOptions options = ManageNetworkUI.CreateSessionOptions(lobbyNameInputField.text, isPrivateToggle.isOn, playerQuantity, lobbyPasswordInputField.text).WithRelayNetwork();
 
         if (NetworkManager.Singleton.IsConnectedClient == false)
         {
