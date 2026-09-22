@@ -33,21 +33,21 @@ public class LobbyViwerUI : UIBase
         sessionManager.CurrentSession.OnPlayersUpdated -= UpdatePlayerData;
     }
 
-    public void Initialize()
+    public void Initialize(GameSession gameSession)
     {
-        startMatchButton.gameObject.SetActive(NetworkManager.Singleton.IsHost);
+        startMatchButton.gameObject.SetActive(gameSession.IsHost);
 
-        foreach (PlayerInLobby playerInLobby in playerInLobbyList)
+        for (int i = playerInLobbyList.Count - 1; i >= 0; i--)
         {
-            RemovePlayer(playerInLobby);
+            RemovePlayer(playerInLobbyList[i]);
         }
 
-        foreach (PlayerData playerData in sessionManager.CurrentSession.CurrentPlayersOnSession)
+        foreach (PlayerData playerData in gameSession.CurrentPlayersOnSession)
         {
             AddPlayer(playerData);
         }
 
-        UpdateSessionData(sessionManager.CurrentSession.SessionData);
+        UpdateSessionData(gameSession.SessionData);
     }
 
     private void UpdateSessionData(SessionData sessionData)
@@ -64,14 +64,18 @@ public class LobbyViwerUI : UIBase
         }
         else if (playerEventType == NetworkListEvent<PlayerData>.EventType.Remove || playerEventType == NetworkListEvent<PlayerData>.EventType.RemoveAt)
         {
-            foreach (PlayerInLobby playerInLobby in playerInLobbyList)
+            for (int i = playerInLobbyList.Count - 1; i >= 0; i--)
             {
-                if (playerInLobby.PlayerData.AuthenticationID == playerData.AuthenticationID)
-                {
-                    RemovePlayer(playerInLobby);
+                PlayerInLobby playerInLobby = playerInLobbyList[i];
 
-                    return;
+                if (playerInLobby.PlayerData.AuthenticationID != playerData.AuthenticationID)
+                {
+                    continue;
                 }
+
+                RemovePlayer(playerInLobby);
+
+                return;
             }
         }
         else if (playerEventType == NetworkListEvent<PlayerData>.EventType.Clear)

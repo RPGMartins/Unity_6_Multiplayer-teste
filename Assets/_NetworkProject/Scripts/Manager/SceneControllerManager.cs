@@ -135,7 +135,7 @@ public class SceneControllerManager : NetworkBehaviour
 
     private FixedString64Bytes GetPlayerAuthenticateIDByClientID(ulong clientID)
     {
-        bool hasPlayer = sessionManager.CurrentSession.GetPlayerDataByClientID(clientID, out PlayerData playerData);
+        bool hasPlayer = sessionManager.CurrentSession.GetPlayerDataByClientID(clientID.ToString(), out PlayerData playerData);
 
         if (hasPlayer == false)
         {

@@ -8,6 +8,7 @@ using UnityEngine;
 public class SessionManager : NetworkBehaviour
 {
     public event Action<GameSession> OnSessionConnected;
+    public event Action<GameSession> OnSessionInitialized;
     public event Action<SessionError> OnSessionConnectFailed;
     public event Action<GameSession> OnSessionDisconnect;
     public event Action<SessionError> OnSessionDisconnectFailed;
@@ -55,22 +56,22 @@ public class SessionManager : NetworkBehaviour
 
     public async Task CreateSession(SessionOptions sessionOptions)
     {
-        await SessionUtility.CreateSessionAsHost(currentSession, sessionOptions, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.CreateSessionAsHost(currentSession, sessionOptions, OnSessionConnected, OnSessionInitialized, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task JoinSessionByCode(string joinCode)
     {
-        await SessionUtility.JoinSessionByCode(joinCode, currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.JoinSessionByCode(joinCode, currentSession, OnSessionConnected, OnSessionInitialized, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task JoinSessionByID(string sessionID)
     {
-        await SessionUtility.JoinSessionByID(sessionID, currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.JoinSessionByID(sessionID, currentSession, OnSessionConnected, OnSessionInitialized, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task QuickJoinSession()
     {
-        await SessionUtility.QuickJoinLobby(currentSession, OnSessionConnected, OnStartTryConnectToSession, OnSessionConnectFailed);
+        await SessionUtility.QuickJoinLobby(currentSession, OnSessionConnected, OnSessionInitialized, OnStartTryConnectToSession, OnSessionConnectFailed);
     }
 
     public async Task ReconnectSession()
@@ -92,19 +93,17 @@ public class SessionManager : NetworkBehaviour
 
     private void PlayerJoinedSession(GameSession session)
     {
-        currentSession = session;
-        session.PlayerLeftaaa += PlayerLeftaaa;
+        session.PlayerHasLeft += PlayerHasLeft;
     }
 
     private void PlayerLeftSession(GameSession session)
     {
-        session.PlayerLeftaaa -= PlayerLeftaaa;
-        currentSession = null;
+        session.PlayerHasLeft -= PlayerHasLeft;
     }
 
-    private void PlayerLeftaaa(string playerID)
+    private void PlayerHasLeft(PlayerData playerData)
     {
-        if (authenticationManager.AuthenticationID == playerID)
+        if (authenticationManager.AuthenticationID == playerData.AuthenticationID)
         {
             LeaveLobby();
         }
@@ -112,18 +111,21 @@ public class SessionManager : NetworkBehaviour
 
     private void OnClientDisconnected(ulong clientID)
     {
-        bool hasPlayer = currentSession.GetPlayerDataByClientID(clientID, out PlayerData playerData);
+        if (clientID == NetworkManager.Singleton.LocalClientId)
+        {
+            LeaveLobby();
+
+            return;
+        }
+
+        bool hasPlayer = currentSession.GetPlayerDataByClientID(clientID.ToString(), out PlayerData playerData);
 
         if (hasPlayer == false)
         {
             return;
         }
 
-        if (playerData.AuthenticationID == authenticationManager.AuthenticationID)
-        {
-            LeaveLobby();
-        }
-        else if (CurrentSession.HasHostAuthority() == true)
+        if (CurrentSession.HasHostAuthority() == true)
         {
             RemovePlayerFromSession(playerData.AuthenticationID);
         }

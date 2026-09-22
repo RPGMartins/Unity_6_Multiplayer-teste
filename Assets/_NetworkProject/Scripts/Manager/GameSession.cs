@@ -10,7 +10,7 @@ using UnityEngine;
 public class GameSession : NetworkBehaviour
 {
     public event Action<PlayerData> PlayerHasJoined;
-    public event Action<string> PlayerLeftaaa;
+    public event Action<PlayerData> PlayerHasLeft;
     public event Action<SessionData> OnSessionUpdated;
     public event Action<PlayerData, NetworkListEvent<PlayerData>.EventType> OnPlayersUpdated;
 
@@ -36,18 +36,81 @@ public class GameSession : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        networkSessionData.Value = new SessionData();
-        networkCurrentPlayersOnSession.Clear();
-        networkSessionStateEnum.Value = SessionStateEnum.OnLobby;
+        if (IsServer == true)
+        {
+            networkSessionData.Value = new SessionData();
+            networkCurrentPlayersOnSession.Clear();
+            networkSessionStateEnum.Value = SessionStateEnum.OnLobby;
+        }
 
-        networkSessionData.OnValueChanged += LobbyDataValueChanged;
-        networkCurrentPlayersOnSession.OnListChanged += HandleLobbyPlayersDataChanged;
+        networkSessionData.OnValueChanged += SessionDataValueChanged;
+        networkCurrentPlayersOnSession.OnListChanged += HandleSessionPlayersDataChanged;
     }
 
     public override void OnNetworkDespawn()
     {
-        networkSessionData.OnValueChanged -= LobbyDataValueChanged;
-        networkCurrentPlayersOnSession.OnListChanged -= HandleLobbyPlayersDataChanged;
+        networkSessionData.OnValueChanged -= SessionDataValueChanged;
+        networkCurrentPlayersOnSession.OnListChanged -= HandleSessionPlayersDataChanged;
+    }
+
+    public void Initialize(ISession session, SessionData sessionData, Action<GameSession> onSessionInitialized)
+    {
+        ResetLocalVariables();
+        StartCoroutine(WaitNetworkBehaviorSpawn(AfterSpawnCallback));
+
+        void AfterSpawnCallback()
+        {
+            this.onlineSession = session;
+            onlineSession.PlayerJoined += PlayerJoined;
+            onlineSession.PlayerHasLeft += PlayerLeft;
+
+            if (HasHostAuthority() == false)
+            {
+                SetSessionData(networkSessionData.Value);
+
+                foreach (PlayerData playerData in networkCurrentPlayersOnSession)
+                {
+                    currentPlayersOnSession.Add(playerData);
+                    PlayerJoined(playerData);
+                }
+            }
+            else
+            {
+                SetSessionData(sessionData);
+
+                foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
+                {
+                    PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
+                    PlayerJoined(playerData);
+                }
+
+                UpdatePlayerIDRpc();
+            }
+
+            onSessionInitialized.Invoke(this);
+        }
+    }
+
+    private IEnumerator WaitNetworkBehaviorSpawn(Action callback)
+    {
+        yield return new WaitUntil(() => IsSpawned == true);
+
+        callback.Invoke();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void UpdatePlayerIDRpc(RpcParams rpcParams = default)
+    {
+        ulong clientId = rpcParams.Receive.SenderClientId;
+        bool hasPlayer = GetPlayerDataByClientID(clientId.ToString(), out PlayerData playerData);
+
+        if (hasPlayer == false)
+        {
+            return;
+        }
+
+        playerData.SetClientID(clientId);
+        UpdatePlayerData(playerData);
     }
 
     #region PlayerJoin
@@ -96,27 +159,36 @@ public class GameSession : NetworkBehaviour
         PlayerHasJoined?.Invoke(playerData);
     }
 
-    #endregion
-
-    #region JoinLeft
-
-    private void PlayerHasLeft(string playerID)
+    private PlayerData CreateGuestPlayer(FixedString64Bytes guestPlayerID)
     {
-        PlayerLeftSession(playerID);
-        PlayerLeftaaa?.Invoke(playerID);
+        return new PlayerData(guestPlayerID, UInt64.MaxValue, "Guest", false); //TODO pegar esse nome de algum lugar
     }
 
-    private void PlayerLeftSession(FixedString64Bytes playerID)
-    {
-        if (HasHostAuthority() == false)
-        {
-            return;
-        }
+    #endregion
 
+    #region PlayerLeft
+
+    private void PlayerLeft(string playerID)
+    {
         bool hasPlayer = GetPlayerDataByPlayerID(playerID, out PlayerData playerData);
 
         if (hasPlayer == false)
         {
+            return;
+        }
+
+        PlayerLeft(playerData);
+    }
+
+    private void PlayerLeft(PlayerData playerData)
+    {
+        if (HasHostAuthority() == false)
+        {
+            if (playerData.IsHost == true)
+            {
+                LeaveSessionAsync();
+            }
+
             return;
         }
 
@@ -126,100 +198,16 @@ public class GameSession : NetworkBehaviour
         }
         else
         {
-            currentPlayersOnSession.Remove(playerData);
+            RemovePlayerLocalToList(playerData);
         }
     }
 
-    private PlayerData CreateGuestPlayer(FixedString64Bytes guestPlayerID)
+    private void PlayerLeftCallback(PlayerData playerData)
     {
-        return new PlayerData(guestPlayerID, UInt64.MaxValue, "Guest", false); //TODO pegar esse nome de algum lugar
+        PlayerHasLeft?.Invoke(playerData);
     }
 
     #endregion
-
-    private void LobbyDataValueChanged(SessionData previousValue, SessionData newValue)
-    {
-        OnSessionUpdated?.Invoke(newValue);
-    }
-
-    private void HandleLobbyPlayersDataChanged(NetworkListEvent<PlayerData> changeEvent)
-    {
-        switch (changeEvent.Type)
-        {
-            case NetworkListEvent<PlayerData>.EventType.Add:
-                AddPlayerLocalToList(changeEvent.Value);
-
-                break;
-
-            case NetworkListEvent<PlayerData>.EventType.Remove:
-                currentPlayersOnSession.Remove(changeEvent.Value);
-
-                break;
-
-            case NetworkListEvent<PlayerData>.EventType.Value:
-                UpdateLocalPlayerData(changeEvent.Value);
-
-                break;
-
-            case NetworkListEvent<PlayerData>.EventType.Clear:
-                break;
-        }
-
-        OnPlayersUpdated?.Invoke(changeEvent.Value, changeEvent.Type);
-    }
-
-    private void AddPlayerLocalToList(PlayerData playerData)
-    {
-        currentPlayersOnSession.Add(playerData);
-        PlayerJoinedCallback(playerData);
-    }
-
-    public void Initialize(ISession session, SessionData sessionData)
-    {
-        StartCoroutine(WaitNetworkBehaviorSpawn(AfterSpawnCallback));
-
-        void AfterSpawnCallback()
-        {
-            this.sessionData = sessionData;
-            this.onlineSession = session;
-            Initialize(session);
-            UpdatePlayerIDRpc();
-        }
-    }
-
-    public void Initialize(ISession session) //TODO deixar privado
-    {
-        onlineSession.PlayerJoined += PlayerJoined;
-        onlineSession.PlayerHasLeft += PlayerHasLeft;
-
-        foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
-        {
-            PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
-            PlayerJoined(playerData);
-        }
-    }
-
-    private IEnumerator WaitNetworkBehaviorSpawn(Action callback)
-    {
-        yield return new WaitUntil(() => IsSpawned == true);
-
-        callback.Invoke();
-    }
-
-    [Rpc(SendTo.Server)]
-    private void UpdatePlayerIDRpc(RpcParams rpcParams = default)
-    {
-        ulong clientId = rpcParams.Receive.SenderClientId;
-        bool hasPlayer = GetPlayerDataByClientID(clientId, out PlayerData playerData);
-
-        if (hasPlayer == false)
-        {
-            return;
-        }
-
-        playerData.SetClientID(clientId);
-        UpdatePlayerData(playerData);
-    }
 
     public async Task RefreshAsync()
     {
@@ -247,14 +235,16 @@ public class GameSession : NetworkBehaviour
 
     public async Task LeaveSessionAsync()
     {
+        ResetLocalVariables();
+
         if (IsOnline == true)
         {
             await onlineSession.LeaveAsync();
-
-            return;
         }
-
-        //TODO Sair da sessão namoral
+        else
+        {
+            //Saida normal
+        }
     }
 
     public async Task RemovePlayerAsync(FixedString64Bytes playerID)
@@ -312,7 +302,7 @@ public class GameSession : NetworkBehaviour
 
     #endregion
 
-    #region Data
+    #region SessionData
 
     public async Task UpdateSessionData(string lobbyName, bool isPrivate)
     {
@@ -329,7 +319,78 @@ public class GameSession : NetworkBehaviour
             await hostSession.SavePropertiesAsync();
         }
 
-        sessionData = new SessionData(sessionData.MaxPlayers, isPrivate, lobbyName, sessionData.LobbyCode);
+        SetSessionData(new SessionData(sessionData.MaxPlayers, isPrivate, lobbyName, sessionData.LobbyCode));
+    }
+
+    private void SetSessionData(SessionData sessionData)
+    {
+        if (HasHostAuthority() == false)
+        {
+            this.sessionData = sessionData;
+
+            return;
+        }
+
+        if (IsOnline == true)
+        {
+            networkSessionData.Value = sessionData;
+        }
+
+        this.sessionData = sessionData;
+    }
+
+    private void SessionDataValueChanged(SessionData previousValue, SessionData newValue)
+    {
+        OnSessionUpdated?.Invoke(newValue);
+    }
+
+    #endregion
+
+    #region PlayerData
+
+    private void HandleSessionPlayersDataChanged(NetworkListEvent<PlayerData> changeEvent)
+    {
+        switch (changeEvent.Type)
+        {
+            case NetworkListEvent<PlayerData>.EventType.Add:
+                AddPlayerLocalToList(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Remove:
+                RemovePlayerLocalToList(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Value:
+                UpdateLocalPlayerData(changeEvent.Value);
+
+                break;
+
+            case NetworkListEvent<PlayerData>.EventType.Clear:
+                ClearPlayerLocalList();
+
+                break;
+        }
+
+        OnPlayersUpdated?.Invoke(changeEvent.Value, changeEvent.Type);
+    }
+
+    private void AddPlayerLocalToList(PlayerData playerData)
+    {
+        currentPlayersOnSession.Add(playerData);
+        PlayerJoinedCallback(playerData);
+    }
+
+    private void RemovePlayerLocalToList(PlayerData playerData)
+    {
+        currentPlayersOnSession.Remove(playerData);
+        PlayerLeftCallback(playerData);
+    }
+
+    private void ClearPlayerLocalList()
+    {
+        currentPlayersOnSession.Clear();
     }
 
     private void UpdatePlayerData(PlayerData playerData)
@@ -351,6 +412,8 @@ public class GameSession : NetworkBehaviour
             if (networkCurrentPlayersOnSession[i].AuthenticationID.Value == playerData.AuthenticationID)
             {
                 networkCurrentPlayersOnSession[i] = playerData;
+
+                break;
             }
         }
     }
@@ -380,13 +443,13 @@ public class GameSession : NetworkBehaviour
         return onlineSession.IsHost;
     }
 
-    public bool GetPlayerDataByClientID(ulong clientID, out PlayerData returnPlayerData)
+    public bool GetPlayerDataByClientID(string clientID, out PlayerData returnPlayerData)
     {
         if (IsOnline == true)
         {
             foreach (PlayerData playerData in networkCurrentPlayersOnSession)
             {
-                if (playerData.ClientId != clientID)
+                if (playerData.ClientId.ToString() != clientID)
                 {
                     continue;
                 }
@@ -400,7 +463,7 @@ public class GameSession : NetworkBehaviour
         {
             foreach (PlayerData playerData in currentPlayersOnSession)
             {
-                if (playerData.ClientId != clientID)
+                if (playerData.ClientId.ToString() != clientID)
                 {
                     continue;
                 }
@@ -450,6 +513,13 @@ public class GameSession : NetworkBehaviour
         returnPlayerData = default;
 
         return false;
+    }
+
+    private void ResetLocalVariables()
+    {
+        currentPlayersOnSession.Clear();
+        sessionData = default;
+        sessionStateEnum = SessionStateEnum.OnLobby;
     }
 
     #endregion

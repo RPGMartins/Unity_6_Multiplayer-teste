@@ -18,11 +18,11 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     public FixedString64Bytes Name => name;
     public FixedString64Bytes AuthenticationID => authenticationID;
 
-    public PlayerData(PlayerData playerData) : this(playerData.authenticationID, playerData.clientId, playerData.name, playerData.isHost)
+    public PlayerData(PlayerData playerData) : this(playerData.authenticationID, playerData.clientId, playerData.name, playerData.isHost, playerData.isReady)
     {
     }
 
-    public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName, bool isHost)
+    public PlayerData(FixedString64Bytes authenticationId, ulong clientId, FixedString64Bytes playerName, bool isHost, bool isReady = false)
     {
         this.authenticationID = authenticationId;
         this.clientId = clientId;
@@ -36,7 +36,7 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
         this.clientId = clientId;
     }
 
-    public void SetReady(bool ready)
+    private void SetReady(bool ready)
     {
         isReady = ready;
     }

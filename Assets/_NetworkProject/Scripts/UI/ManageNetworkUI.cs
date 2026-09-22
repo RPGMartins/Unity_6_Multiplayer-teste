@@ -28,7 +28,7 @@ public class ManageNetworkUI : MonoBehaviour
         sessionManager.OnStartTryConnectToSession += OpenLoadScreen;
         sessionManager.OnStartTryDisconnectFromSession += OpenLoadScreen;
 
-        sessionManager.OnSessionConnected += OpenSessionViewerUI;
+        sessionManager.OnSessionInitialized += OpenSessionViewerUI;
         sessionManager.OnSessionDisconnect += OpenMainMenuNetworkSession;
 
         sessionManager.OnSessionConnectFailed += OpenErrorScreenUI;
@@ -102,7 +102,7 @@ public class ManageNetworkUI : MonoBehaviour
     public void OpenSessionViewerUI(GameSession session)
     {
         OpenLobbyViewerUINetwork();
-        lobbyViwerUI.Initialize();
+        lobbyViwerUI.Initialize(session);
     }
 
     public void OpenLobbyViewerUINetwork()
