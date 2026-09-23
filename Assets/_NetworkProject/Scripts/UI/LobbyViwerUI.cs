@@ -35,7 +35,14 @@ public class LobbyViwerUI : UIBase
 
     public void Initialize(GameSession gameSession)
     {
-        startMatchButton.gameObject.SetActive(gameSession.IsHost);
+        if (gameSession.IsOnline == false)
+        {
+            startMatchButton.gameObject.SetActive(true);
+        }
+        else
+        {
+            startMatchButton.gameObject.SetActive(gameSession.HasHostAuthority());
+        }
 
         for (int i = playerInLobbyList.Count - 1; i >= 0; i--)
         {

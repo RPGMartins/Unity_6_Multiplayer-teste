@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using Unity.Netcode;
 using Unity.Services.Multiplayer;
@@ -11,18 +12,32 @@ public class CreateLobbyScreen : UIBase
     [SerializeField] private TMP_InputField lobbyQuantityInputField;
     [SerializeField] private Toggle isPrivateToggle;
 
+    private Func<bool> isNetwork;
+
+    public void Initialize(Func<bool> isNetwork)
+    {
+        this.isNetwork = isNetwork;
+    }
+
     public void CreateLobby()
     {
         int.TryParse(lobbyQuantityInputField.text, out int playerQuantity);
         SessionOptions options = ManageNetworkUI.CreateSessionOptions(lobbyNameInputField.text, isPrivateToggle.isOn, playerQuantity, lobbyPasswordInputField.text).WithRelayNetwork();
 
-        if (NetworkManager.Singleton.IsConnectedClient == false)
+        if (SessionManager.Instance.CurrentSession.IsInitialized == true)
         {
-            SessionManager.Instance.CreateSession(options);
+            SessionManager.Instance.UpdateLobbyData(isPrivateToggle.isOn, lobbyNameInputField.text);
         }
         else
         {
-            SessionManager.Instance.UpdateLobbyData(isPrivateToggle.isOn, lobbyNameInputField.text);
+            if (isNetwork() == true)
+            {
+                SessionManager.Instance.CreateSession(options);
+            }
+            else
+            {
+                SessionManager.Instance.CreateSession(null);
+            }
         }
     }
 }

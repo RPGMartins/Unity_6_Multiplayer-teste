@@ -17,9 +17,11 @@ public class ManageNetworkUI : MonoBehaviour
     [SerializeField] private RectTransform loadScreen;
     [SerializeField] private JoinLobbyScreen joinLobbyScreen;
     [SerializeField] private CreateLobbyScreen createLobbyScreen;
+    [SerializeField] private Image networkButton;
     [SerializeField] private MenuLayout menuLayout;
     private SessionManager sessionManager;
     private bool isVisible;
+    private bool isNetwork = true;
 
     private void Start()
     {
@@ -34,7 +36,15 @@ public class ManageNetworkUI : MonoBehaviour
         sessionManager.OnSessionConnectFailed += OpenErrorScreenUI;
         sessionManager.OnSessionDisconnectFailed += OpenErrorScreenUI;
 
+        createLobbyScreen.Initialize(GetIsNetwork);
+
         OpenMainMenuNetwork();
+        NetworkButtonColor();
+    }
+
+    private bool GetIsNetwork()
+    {
+        return isNetwork;
     }
 
     private void Update()
@@ -125,8 +135,33 @@ public class ManageNetworkUI : MonoBehaviour
 
     public void CreateRandomLobby()
     {
-        SessionOptions options = CreateSessionOptions().WithRelayNetwork();
-        sessionManager.CreateSession(options);
+        if (isNetwork == true)
+        {
+            SessionOptions options = CreateSessionOptions().WithRelayNetwork();
+            sessionManager.CreateSession(options);
+        }
+        else
+        {
+            sessionManager.CreateSession(null);
+        }
+    }
+
+    public void ToggleNetwork()
+    {
+        isNetwork = !isNetwork;
+        NetworkButtonColor();
+    }
+
+    private void NetworkButtonColor()
+    {
+        if (isNetwork == true)
+        {
+            networkButton.color = Color.green;
+        }
+        else
+        {
+            networkButton.color = Color.red;
+        }
     }
 
     private void CloseAll()
@@ -180,7 +215,7 @@ public struct MenuLayout
 
     public void CheckIfInLobby()
     {
-        bool show = NetworkManager.Singleton?.IsConnectedClient == true;
+        bool show = SessionManager.Instance.CurrentSession.IsInitialized;
 
         createRandomLobby.gameObject.SetActive(!show);
         joinLobby.gameObject.SetActive(!show);

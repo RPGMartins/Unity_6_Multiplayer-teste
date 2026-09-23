@@ -17,7 +17,7 @@ public class AuthenticationManager : MonoBehaviour
     public FixedString64Bytes AuthenticationID => authenticationService.PlayerId;
     public string PlayerName => authenticationService.PlayerName;
 
-    public void Initialize()
+    public void Start()
     {
         InitializeAsync();
     }

@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -12,7 +14,6 @@ public class SceneControllerManager : NetworkBehaviour
 
     private NetworkSceneManager networkSceneManager;
     private SessionManager sessionManager;
-    private Action<SessionStateEnum> lobbyStateCallback;
     public static SceneControllerManager Instance { get; private set; }
 
     private void Awake()
@@ -20,26 +21,23 @@ public class SceneControllerManager : NetworkBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        this.sessionManager = SessionManager.Instance;
+    }
+
     public override void OnNetworkSpawn()
     {
         networkSceneManager = NetworkManager.Singleton.SceneManager;
 
-        networkSceneManager.OnLoadEventCompleted += NetworkSceneManagerOnOnLoadComplete;
-        networkSceneManager.OnSynchronizeComplete += NetworkSceneManagerOnOnSynchronizeComplete;
+        networkSceneManager.OnLoadEventCompleted += OnLoadComplete;
+        networkSceneManager.OnSynchronizeComplete += OnSynchronizeComplete;
     }
 
     public override void OnNetworkDespawn()
     {
-        networkSceneManager.OnLoadEventCompleted -= NetworkSceneManagerOnOnLoadComplete;
-        networkSceneManager.OnSynchronizeComplete -= NetworkSceneManagerOnOnSynchronizeComplete;
-    }
-
-    public void Initiliaze(Action<SessionStateEnum> lobbyStateCallback, SessionManager sessionManager)
-    {
-        this.lobbyStateCallback = lobbyStateCallback;
-        this.sessionManager = sessionManager;
-
-        sessionManager.OnSessionDisconnect += (_) => GotoMainMenuScene();
+        networkSceneManager.OnLoadEventCompleted -= OnLoadComplete;
+        networkSceneManager.OnSynchronizeComplete -= OnSynchronizeComplete;
     }
 
     [ContextMenu("GotoGameplayScene")]
@@ -56,7 +54,7 @@ public class SceneControllerManager : NetworkBehaviour
 
     private void ChangeScene(string sceneName)
     {
-        if (IsSpawned == true) // Has Connection
+        if (IsSpawned == true) // Has Connection //TODO usar gameSession
         {
             if (NetworkManager.Singleton.IsServer == true)
             {
@@ -65,50 +63,61 @@ public class SceneControllerManager : NetworkBehaviour
         }
         else
         {
-            SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+            LoadSceneMode loadSceneMode = LoadSceneMode.Single;
+            SceneManager.LoadScene(sceneName, loadSceneMode);
+            List<PlayerData> playersOnSession = sessionManager.CurrentSession.CurrentPlayersOnSession;
+            List<ulong> clientIds = new List<ulong>();
 
-            SessionStateEnum sessionStateEnumToGo = SessionStateEnum.OnLobby;
-
-            if (sceneName == gameplaySceneName)
+            foreach (PlayerData player in playersOnSession)
             {
-                sessionStateEnumToGo = SessionStateEnum.OnGameplay;
+                clientIds.Add(player.ClientId);
             }
 
-            lobbyStateCallback?.Invoke(sessionStateEnumToGo);
+            OnLoadComplete(sceneName, loadSceneMode, clientIds, null);
         }
     }
 
-    private void NetworkSceneManagerOnOnLoadComplete(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
+    private void OnLoadComplete(string sceneName, LoadSceneMode loadSceneMode, List<ulong> clientsCompleted, List<ulong> clientsTimedOut)
     {
-        if (NetworkManager.Singleton.IsServer == false)
+        if (sessionManager.CurrentSession.HasHostAuthority() == false)
         {
             return;
         }
 
-        if (sceneName == gameplaySceneName) // criar uma classe GameplayInitializer, em que vai passar a lista de clients, e ela vai incializar tudo certinho
+        List<FixedString64Bytes> playerIdList = new List<FixedString64Bytes>();
+
+        foreach (ulong clientID in clientsCompleted)
         {
-            lobbyStateCallback?.Invoke(SessionStateEnum.OnGameplay);
-            List<FixedString64Bytes> playerIds = new List<FixedString64Bytes>();
+            FixedString64Bytes playerAuthenticateID = GetPlayerAuthenticateIDByClientID(clientID);
 
-            foreach (ulong clientID in clientsCompleted)
+            if (playerAuthenticateID.Value != null)
             {
-                FixedString64Bytes playerAuthenticateID = GetPlayerAuthenticateIDByClientID(clientID);
-
-                if (playerAuthenticateID.Value != null)
-                {
-                    playerIds.Add(playerAuthenticateID);
-                }
+                playerIdList.Add(playerAuthenticateID);
             }
+        }
 
-            PlayerInitializer.instance.PreparePlayersToBeSpawned(playerIds.ToArray());
+        StartCoroutine(WaitPlayerInitializerBeingInitialized(() => OnLoadComplete(sceneName, playerIdList)));
+    }
+
+    private IEnumerator WaitPlayerInitializerBeingInitialized(Action callback)
+    {
+        yield return new WaitUntil(() => PlayerInitializer.instance != null);
+
+        callback.Invoke();
+    }
+
+    private void OnLoadComplete(string sceneName, List<FixedString64Bytes> playerIDsList)
+    {
+        if (sceneName == gameplaySceneName)
+        {
+            PlayerInitializer.instance.PreparePlayersToBeSpawned(playerIDsList.ToArray());
         }
         else if (sceneName == mainMenuSceneName)
         {
-            lobbyStateCallback?.Invoke(SessionStateEnum.OnLobby);
         }
     }
 
-    private void NetworkSceneManagerOnOnSynchronizeComplete(ulong clientID) //Quando cliente sincroniza com a sessao
+    private void OnSynchronizeComplete(ulong clientID) //Quando cliente sincroniza com a sessao
     {
         if (NetworkManager.Singleton.IsServer == true)
         {

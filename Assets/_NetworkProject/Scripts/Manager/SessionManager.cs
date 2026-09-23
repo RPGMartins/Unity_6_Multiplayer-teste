@@ -45,7 +45,7 @@ public class SessionManager : NetworkBehaviour
         }
     }
 
-    public void Initialize()
+    public void Start()
     {
         OnSessionConnected += PlayerJoinedSession;
         OnSessionDisconnect += PlayerLeftSession;

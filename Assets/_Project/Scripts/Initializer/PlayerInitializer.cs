@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class PlayerInitializer : NetworkBehaviour
 {
-    private static string defaultPlayerID = "DefaultPlayer";
     public static string defaultFlashLightID = "FlashLight";
     public static string defaultPistolID = "Pistol";
 
@@ -32,16 +31,6 @@ public class PlayerInitializer : NetworkBehaviour
     private void Start()
     {
         sessionManager = SessionManager.Instance;
-
-        if (NetworkConnectionChecker.CheckConnection() == true)
-        {
-            return;
-        }
-
-        if (clientsToSpawn.Count <= 0)
-        {
-            PreparePlayersToBeSpawned(new FixedString64Bytes[] { defaultPlayerID });
-        }
     }
 
     private void Update()
