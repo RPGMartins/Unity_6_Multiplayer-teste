@@ -96,12 +96,14 @@ public class GameSession : NetworkBehaviour
                 {
                     foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
                     {
+                        PlayerData x = CreatePlayerData(readOnlyPlayer.Id, true, "HOST"); //TODO pegar esse nome de algum lugar
                         PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
                         PlayerJoined(playerData);
                     }
                 }
                 else
                 {
+                    PlayerData x = CreatePlayerData(authenticationManager.AuthenticationID, true, "HOST"); //TODO pegar esse nome de algum lugar
                     PlayerData playerData = new PlayerData(authenticationManager.AuthenticationID, 0, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
                     PlayerJoined(playerData);
                 }
@@ -136,9 +138,9 @@ public class GameSession : NetworkBehaviour
 
     #region PlayerJoin
 
-    private void PlayerJoined(string clientId)
+    private void PlayerJoined(string playerID)
     {
-        PlayerData playerData = CreateGuestPlayer(clientId);
+        PlayerData playerData = CreatePlayerData(playerID, false);
         PlayerJoined(playerData);
         UpdatePlayerIDRpc();
     }
@@ -181,9 +183,9 @@ public class GameSession : NetworkBehaviour
         PlayerHasJoined?.Invoke(playerData);
     }
 
-    private PlayerData CreateGuestPlayer(FixedString64Bytes guestPlayerID)
+    private PlayerData CreatePlayerData(FixedString64Bytes guestPlayerID, bool isHost, string playerName = "Guest")
     {
-        return new PlayerData(guestPlayerID, UInt64.MaxValue, "Guest", false); //TODO pegar esse nome de algum lugar
+        return new PlayerData(guestPlayerID, UInt64.MaxValue, playerName, isHost);
     }
 
     #endregion
