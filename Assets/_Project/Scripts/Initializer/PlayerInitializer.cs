@@ -35,51 +35,34 @@ public class PlayerInitializer : NetworkBehaviour
 
     private void Update()
     {
-        if (NetworkConnectionChecker.CheckIfHasAuthority() == true)
+        if (SessionManager.Instance.CurrentSession.IsOnline == false)
         {
-            SpawnOnline();
+            Spawn(false);
         }
-        else
+        else if (SessionManager.Instance.CurrentSession.HasAuthority == true)
         {
-            SpawnOffline();
-        }
-    }
-
-    private void SpawnOffline()
-    {
-        for (int i = clientsToSpawn.Count - 1; i >= 0; i--)
-        {
-            ulong clientID = 0;
-            FixedString64Bytes playerID = clientsToSpawn[i];
-            PlayerController playerController = SpawnPlayer(clientID, i, false);
-            playerCreatedList.Add(playerController);
-            playerController.Initialize(playerID, clientID);
+            Spawn(true);
         }
     }
 
-    private void SpawnOnline()
+    private void Spawn(bool network)
     {
         for (int i = clientsToSpawn.Count - 1; i >= 0; i--)
         {
-            ulong clientID = 0;
-            FixedString64Bytes playerID = clientsToSpawn[i];
+            bool hasPlayer = sessionManager.CurrentSession.GetPlayerDataByPlayerID(clientsToSpawn[i], out PlayerData playerData);
 
-            foreach (PlayerData playerData in sessionManager.CurrentSession.CurrentPlayersOnSession)
+            if (hasPlayer == false)
             {
-                if (playerData.AuthenticationID != clientsToSpawn[i])
-                {
-                    continue;
-                }
-
-                clientID = playerData.ClientId;
-
-                break;
+                throw new Exception("Player data not found");
             }
 
-            inventoryManager.ServerAddPlayer(clientsToSpawn[i]);
-            PlayerController playerController = SpawnPlayer(clientID, i, true);
+            ulong clientID = playerData.ClientId;
+            FixedString64Bytes playerID = playerData.AuthenticationID;
+
+            inventoryManager.AddPlayer(playerID);
+            PlayerController playerController = SpawnPlayer(clientID, i, network);
             playerCreatedList.Add(playerController);
-            playerController.InitializeRPC(playerID, clientID);
+            playerController.Initialize(playerID, clientID);
         }
     }
 

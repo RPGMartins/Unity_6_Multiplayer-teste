@@ -99,8 +99,6 @@ public class GameSession : NetworkBehaviour
                         PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
                         PlayerJoined(playerData);
                     }
-
-                    UpdatePlayerIDRpc();
                 }
                 else
                 {
@@ -142,6 +140,7 @@ public class GameSession : NetworkBehaviour
     {
         PlayerData playerData = CreateGuestPlayer(clientId);
         PlayerJoined(playerData);
+        UpdatePlayerIDRpc();
     }
 
     private void PlayerJoined(PlayerData playerData)
@@ -261,13 +260,6 @@ public class GameSession : NetworkBehaviour
         if (IsOnline == true)
         {
             await onlineSession.LeaveAsync();
-        }
-        else
-        {
-        }
-
-        {
-            //Saida normal
         }
 
         ResetLocalVariables();

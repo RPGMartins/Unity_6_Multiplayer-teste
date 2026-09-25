@@ -48,6 +48,25 @@ public class PlayerController : NetworkBehaviour
 
     public void Initialize(FixedString64Bytes playerId, ulong clientID)
     {
+        if (SessionManager.Instance.CurrentSession.IsOnline == true)
+        {
+            if (SessionManager.Instance.CurrentSession.HasAuthority == true)
+            {
+                InitializeLocal(playerId, clientID);
+            }
+            else
+            {
+                InitializeNetworkRPC(playerId, clientID);
+            }
+        }
+        else
+        {
+            InitializeLocal(playerId, clientID);
+        }
+    }
+
+    private void InitializeLocal(FixedString64Bytes playerId, ulong clientID)
+    {
         AuthenticateID = playerId;
         ClientID = clientID;
 
@@ -62,6 +81,12 @@ public class PlayerController : NetworkBehaviour
         }
     }
 
+    [Rpc(SendTo.ClientsAndHost)]
+    private void InitializeNetworkRPC(FixedString64Bytes playerId, ulong clientID)
+    {
+        InitializeLocal(playerId, clientID);
+    }
+
     public void InitializePlayerInput(PlayerInput playerInput)
     {
         this.playerInput = playerInput;
@@ -73,12 +98,6 @@ public class PlayerController : NetworkBehaviour
         playerMovement.Initialize(playerInput.GetMovement, playerCombat.GetAngleToRotate);
         playerCombat.Initialize(AuthenticateID, playerInput.GetMousePosition, playerInput.Shooting);
         playerInteract.InitializeInput(playerInput.Interacting);
-    }
-
-    [Rpc(SendTo.ClientsAndHost)]
-    public void InitializeRPC(FixedString64Bytes playerId, ulong clientID)
-    {
-        Initialize(playerId, clientID);
     }
 
     private void CallEquipSlotWeapon(int slot)

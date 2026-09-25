@@ -164,7 +164,7 @@ public static class SessionUtility
             string sessionId = sessionIds[0];
             ISession reconnectToSessionAsync = await MultiplayerService.Instance.ReconnectToSessionAsync(sessionId);
 
-            //currentSession.Initialize(reconnectToSessionAsync); TODO
+            //currentSession.InitializeLocal(reconnectToSessionAsync); TODO
             NetworkManager.Singleton.StartClient();
             onSessionConnected?.Invoke(currentSession);
         }

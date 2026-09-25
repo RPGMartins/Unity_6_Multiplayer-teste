@@ -53,7 +53,25 @@ public class InventoryManager : NetworkBehaviour
         }
     }
 
-    public void ServerAddPlayer(FixedString64Bytes playerID)
+    #region Player
+
+    public void AddPlayer(FixedString64Bytes playerID)
+    {
+        if (SessionManager.Instance.CurrentSession.IsOnline == false)
+        {
+            AddPlayerLocally(playerID);
+        }
+        else
+        {
+            ServerAddPlayer(playerID);
+        }
+    }
+
+    private void AddPlayerLocally(FixedString64Bytes playerID)
+    {
+    }
+
+    private void ServerAddPlayer(FixedString64Bytes playerID)
     {
         if (IsServer == false)
         {
@@ -67,6 +85,8 @@ public class InventoryManager : NetworkBehaviour
 
         networkPlayers.Add(playerID);
     }
+
+    #endregion
 
     #region TryAddItem
 
@@ -115,7 +135,7 @@ public class InventoryManager : NetworkBehaviour
 
         FixedString64Bytes playerID = data.PlayerID;
 
-        if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)    
+        if (PlayerHasItem(baseItem.ItemID, playerID, out _) == true)
         {
             return;
         }

@@ -54,9 +54,9 @@ public class SceneControllerManager : NetworkBehaviour
 
     private void ChangeScene(string sceneName)
     {
-        if (IsSpawned == true) // Has Connection //TODO usar gameSession
+        if (sessionManager.CurrentSession.IsOnline == true)
         {
-            if (NetworkManager.Singleton.IsServer == true)
+            if (sessionManager.CurrentSession.HasHostAuthority() == true)
             {
                 SceneEventProgressStatus status = networkSceneManager.LoadScene(sceneName, LoadSceneMode.Single);
             }
@@ -148,7 +148,7 @@ public class SceneControllerManager : NetworkBehaviour
 
         if (hasPlayer == false)
         {
-            return null;
+            return new FixedString64Bytes();
         }
 
         return playerData.AuthenticationID;
