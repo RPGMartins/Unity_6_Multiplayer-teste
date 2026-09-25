@@ -52,10 +52,6 @@ public class PlayerController : NetworkBehaviour
         {
             if (SessionManager.Instance.CurrentSession.HasAuthority == true)
             {
-                InitializeLocal(playerId, clientID);
-            }
-            else
-            {
                 InitializeNetworkRPC(playerId, clientID);
             }
         }

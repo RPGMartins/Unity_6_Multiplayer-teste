@@ -249,7 +249,7 @@ public class InventoryManager : NetworkBehaviour
 
         foreach (InventoryData inventoryData in playerInventoryList)
         {
-            if (playerID == inventoryData.PlayerID && itemID == inventoryData.ItemID)
+            if (playerID.Value == inventoryData.PlayerID && itemID == inventoryData.ItemID)
             {
                 outInventoryData = inventoryData;
 
