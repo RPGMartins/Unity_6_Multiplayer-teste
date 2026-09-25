@@ -10,16 +10,23 @@ public class PlayerCombat : MonoBehaviour
     private Func<Vector3> mouseMovementAction;
     private Func<bool> shootingAction;
     private FixedString64Bytes playerID;
+    private bool initialized = false;
 
     public void Initialize(FixedString64Bytes playerID, Func<Vector3> mouseMovementVector, Func<bool> shooting)
     {
         this.playerID = playerID;
         this.shootingAction = shooting;
         this.mouseMovementAction = mouseMovementVector;
+        initialized = true;
     }
 
     private void Update()
     {
+        if (initialized == false)
+        {
+            return;
+        }
+
         aimTarget.position = mouseMovementAction.Invoke();
 
         if (shootingAction.Invoke() == true)

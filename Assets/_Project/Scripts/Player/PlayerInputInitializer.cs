@@ -63,13 +63,6 @@ public class PlayerInputInitializer : NetworkBehaviour
             return;
         }
 
-        if (playerController.AuthenticateID.Value != playerID)
-        {
-            playerToInitializeList.RemoveAt(index);
-
-            return;
-        }
-
         PlayerInput playerInput = Instantiate(playerInputPrefab, transform);
         playerInput.Initialize(playerID);
         playerController.InitializePlayerInput(playerInput);

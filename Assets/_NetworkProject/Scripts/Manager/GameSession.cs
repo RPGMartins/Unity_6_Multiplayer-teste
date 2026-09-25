@@ -26,7 +26,8 @@ public class GameSession : NetworkBehaviour
     private NetworkVariable<SessionStateEnum> networkSessionStateEnum = new NetworkVariable<SessionStateEnum>();
 
     private bool initialized = false;
-
+    private List<FixedString64Bytes> playersWaitingConnection = new List<FixedString64Bytes>();
+    private Dictionary<FixedString64Bytes, ulong> playerConnectionsWaitingSession = new Dictionary<FixedString64Bytes, ulong>();
     public SessionData SessionData => sessionData;
     public bool IsOnline => onlineSession != null;
     public bool IsInitialized => initialized;
@@ -76,6 +77,8 @@ public class GameSession : NetworkBehaviour
                 this.onlineSession = session;
                 onlineSession.PlayerJoined += PlayerJoined;
                 onlineSession.PlayerHasLeft += PlayerLeft;
+
+                RegisterCurrentPlayerConnection();
             }
 
             if (HasHostAuthority() == false)
@@ -85,7 +88,6 @@ public class GameSession : NetworkBehaviour
                 foreach (PlayerData playerData in networkCurrentPlayersOnSession)
                 {
                     currentPlayersOnSession.Add(playerData);
-                    PlayerJoined(playerData);
                 }
             }
             else
@@ -96,15 +98,12 @@ public class GameSession : NetworkBehaviour
                 {
                     foreach (IReadOnlyPlayer readOnlyPlayer in session.Players)
                     {
-                        PlayerData x = CreatePlayerData(readOnlyPlayer.Id, true, "HOST"); //TODO pegar esse nome de algum lugar
-                        PlayerData playerData = new PlayerData(readOnlyPlayer.Id, NetworkManager.LocalClientId, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
-                        PlayerJoined(playerData);
+                        PlayerJoined(readOnlyPlayer.Id);
                     }
                 }
                 else
                 {
-                    PlayerData x = CreatePlayerData(authenticationManager.AuthenticationID, true, "HOST"); //TODO pegar esse nome de algum lugar
-                    PlayerData playerData = new PlayerData(authenticationManager.AuthenticationID, 0, authenticationManager.PlayerName, true); //TODO ver se existe possibildade de isso nem sempre ser true
+                    PlayerData playerData = CreatePlayerData(authenticationManager.AuthenticationID, 0, true, authenticationManager.PlayerName);
                     PlayerJoined(playerData);
                 }
             }
@@ -121,28 +120,91 @@ public class GameSession : NetworkBehaviour
         callback.Invoke();
     }
 
-    [Rpc(SendTo.Server)]
-    private void UpdatePlayerIDRpc(RpcParams rpcParams = default)
-    {
-        ulong clientId = rpcParams.Receive.SenderClientId;
-        bool hasPlayer = GetPlayerDataByClientID(clientId.ToString(), out PlayerData playerData);
-
-        if (hasPlayer == false)
-        {
-            return;
-        }
-
-        playerData.SetClientID(clientId);
-        UpdatePlayerData(playerData);
-    }
-
     #region PlayerJoin
 
     private void PlayerJoined(string playerID)
     {
-        PlayerData playerData = CreatePlayerData(playerID, false);
+        if (HasHostAuthority() == false)
+        {
+            return;
+        }
+
+        FixedString64Bytes fixedPlayerID = new FixedString64Bytes(playerID);
+
+        bool hasPlayer = GetPlayerDataByPlayerID(fixedPlayerID, out _);
+
+        if (hasPlayer == true)
+        {
+            return;
+        }
+
+        if (playerConnectionsWaitingSession.TryGetValue(fixedPlayerID, out ulong clientID) == true)
+        {
+            playerConnectionsWaitingSession.Remove(fixedPlayerID);
+            CreateConnectedPlayer(fixedPlayerID, clientID);
+
+            return;
+        }
+
+        if (playersWaitingConnection.Contains(fixedPlayerID) == false)
+        {
+            playersWaitingConnection.Add(fixedPlayerID);
+        }
+    }
+
+    private void RegisterCurrentPlayerConnection()
+    {
+        FixedString64Bytes playerID = new FixedString64Bytes(onlineSession.CurrentPlayer.Id);
+
+        if (HasHostAuthority() == true)
+        {
+            RegisterPlayerConnection(playerID, NetworkManager.LocalClientId);
+
+            return;
+        }
+
+        RegisterPlayerConnectionRpc(playerID);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RegisterPlayerConnectionRpc(FixedString64Bytes playerID, RpcParams rpcParams = default)
+    {
+        ulong clientID = rpcParams.Receive.SenderClientId;
+
+        RegisterPlayerConnection(playerID, clientID);
+    }
+
+    private void RegisterPlayerConnection(FixedString64Bytes playerID, ulong clientID)
+    {
+        bool hasPlayer = GetPlayerDataByPlayerID(playerID, out _);
+
+        if (hasPlayer == true)
+        {
+            return;
+        }
+
+        if (playersWaitingConnection.Remove(playerID) == true)
+        {
+            CreateConnectedPlayer(playerID, clientID);
+
+            return;
+        }
+
+        playerConnectionsWaitingSession[playerID] = clientID;
+    }
+
+    private void CreateConnectedPlayer(FixedString64Bytes playerID, ulong clientID)
+    {
+        bool isHost = onlineSession.Host == playerID.Value;
+        string playerName = "Guest";
+
+        if (playerID == authenticationManager.AuthenticationID)
+        {
+            playerName = authenticationManager.PlayerName;
+        }
+
+        PlayerData playerData = CreatePlayerData(playerID, clientID, isHost, playerName);
         PlayerJoined(playerData);
-        UpdatePlayerIDRpc();
     }
 
     private void PlayerJoined(PlayerData playerData)
@@ -183,9 +245,9 @@ public class GameSession : NetworkBehaviour
         PlayerHasJoined?.Invoke(playerData);
     }
 
-    private PlayerData CreatePlayerData(FixedString64Bytes guestPlayerID, bool isHost, string playerName = "Guest")
+    private PlayerData CreatePlayerData(FixedString64Bytes guestPlayerID, ulong clientID, bool isHost, string playerName = "Guest")
     {
-        return new PlayerData(guestPlayerID, UInt64.MaxValue, playerName, isHost);
+        return new PlayerData(guestPlayerID, clientID, playerName, isHost);
     }
 
     #endregion
@@ -194,7 +256,15 @@ public class GameSession : NetworkBehaviour
 
     private void PlayerLeft(string playerID)
     {
-        bool hasPlayer = GetPlayerDataByPlayerID(playerID, out PlayerData playerData);
+        FixedString64Bytes fixedPlayerID = new FixedString64Bytes(playerID);
+
+        if (HasHostAuthority() == true)
+        {
+            playersWaitingConnection.Remove(fixedPlayerID);
+            playerConnectionsWaitingSession.Remove(fixedPlayerID);
+        }
+
+        bool hasPlayer = GetPlayerDataByPlayerID(fixedPlayerID, out PlayerData playerData);
 
         if (hasPlayer == false)
         {
@@ -558,6 +628,8 @@ public class GameSession : NetworkBehaviour
 
         initialized = false;
         onlineSession = null;
+        playersWaitingConnection.Clear();
+        playerConnectionsWaitingSession.Clear();
         currentPlayersOnSession.Clear();
         sessionData = default;
         sessionStateEnum = SessionStateEnum.OnLobby;
