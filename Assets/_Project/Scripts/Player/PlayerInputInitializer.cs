@@ -5,17 +5,10 @@ using UnityEngine;
 
 public class PlayerInputInitializer : NetworkBehaviour
 {
-    public static PlayerInputInitializer instance;
-
     [SerializeField] private PlayerInput playerInputPrefab;
 
     private List<PlayerInput> playerInputList = new List<PlayerInput>();
     private List<FixedString64Bytes> playerToInitializeList = new List<FixedString64Bytes>();
-
-    private void Awake()
-    {
-        instance = this;
-    }
 
     private void Start()
     {
@@ -34,58 +27,47 @@ public class PlayerInputInitializer : NetworkBehaviour
     {
         for (int i = playerToInitializeList.Count - 1; i >= 0; i--)
         {
+            bool initialized = false;
+
             if (NetworkConnectionChecker.CheckConnection() == true)
             {
-                InitializePlayerInputNetwork(i);
+                NetworkObject playerObject = NetworkManager.Singleton.LocalClient.PlayerObject;
+
+                if (playerObject == null)
+                {
+                    return;
+                }
+
+                PlayerController playerController = playerObject.GetComponentInChildren<PlayerController>();
+
+                if (playerController == null)
+                {
+                    return;
+                }
+
+                initialized = InitializePlayerInputBase(playerController);
             }
             else
             {
-                InitializePlayerInput(i);
+                PlayerController playerController = PlayerInitializer.instance.GetPlayerControllerByPlayerID(playerToInitializeList[i]);
+                initialized = InitializePlayerInputBase(playerController);
+            }
+
+            if (initialized == true)
+            {
+                playerToInitializeList.RemoveAt(i);
             }
         }
     }
 
-    private void InitializePlayerInputNetwork(int index)
+    private bool InitializePlayerInputBase(PlayerController playerController)
     {
-        FixedString64Bytes playerID = playerToInitializeList[index];
-
-        NetworkObject playerObject = NetworkManager.Singleton.LocalClient.PlayerObject;
-
-        if (playerObject == null)
-        {
-            return;
-        }
-
-        PlayerController playerController = playerObject.GetComponentInChildren<PlayerController>();
-
-        if (playerController == null)
-        {
-            return;
-        }
-
         PlayerInput playerInput = Instantiate(playerInputPrefab, transform);
         playerInput.Initialize();
         playerController.InitializePlayerInput(playerInput);
         playerInputList.Add(playerInput);
-        playerToInitializeList.RemoveAt(index);
-    }
 
-    private void InitializePlayerInput(int index)
-    {
-        FixedString64Bytes playerID = playerToInitializeList[index];
-
-        PlayerController playerController = PlayerInitializer.instance.GetPlayerControllerByPlayerID(playerID);
-
-        if (playerController == null)
-        {
-            return;
-        }
-
-        PlayerInput playerInput = Instantiate(playerInputPrefab, transform);
-        playerInput.Initialize();
-        playerController.InitializePlayerInput(playerInput);
-        playerInputList.Add(playerInput);
-        playerToInitializeList.RemoveAt(index);
+        return true;
     }
 
     private void ReceivePlayerID(FixedString64Bytes playerID)
