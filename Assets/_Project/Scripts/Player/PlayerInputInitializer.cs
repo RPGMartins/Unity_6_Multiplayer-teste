@@ -64,7 +64,7 @@ public class PlayerInputInitializer : NetworkBehaviour
         }
 
         PlayerInput playerInput = Instantiate(playerInputPrefab, transform);
-        playerInput.Initialize(playerID);
+        playerInput.Initialize();
         playerController.InitializePlayerInput(playerInput);
         playerInputList.Add(playerInput);
         playerToInitializeList.RemoveAt(index);
@@ -82,7 +82,7 @@ public class PlayerInputInitializer : NetworkBehaviour
         }
 
         PlayerInput playerInput = Instantiate(playerInputPrefab, transform);
-        playerInput.Initialize(playerID);
+        playerInput.Initialize();
         playerController.InitializePlayerInput(playerInput);
         playerInputList.Add(playerInput);
         playerToInitializeList.RemoveAt(index);

@@ -12,6 +12,8 @@ public struct PlayerData : INetworkSerializable, IEquatable<PlayerData>
     public FixedString64Bytes name;
     public FixedString64Bytes authenticationID;
 
+    //TODO colocar algo que indique se é splitScreen, porque por exemplo quando carrega uma scena,se recebe um List<ulong> clientsCompleted, e o splitScreen não está nessa lista
+
     public bool IsReady => isReady;
     public ulong ClientId => clientId;
     public bool IsHost => isHost;

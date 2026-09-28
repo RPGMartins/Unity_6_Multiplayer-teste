@@ -1,6 +1,4 @@
 using System;
-using Unity.Collections;
-using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -15,16 +13,24 @@ public class PlayerInput : MonoBehaviour
 
     private Camera cam;
 
-    [SerializeField] private FixedString64Bytes playerID; //TODO TIRAR DEPOIS,so pra ver
+    private Keyboard keyboard;
+    private Mouse mouse;
+    private Gamepad gamepad;
 
-    public void Initialize(FixedString64Bytes playerId)
+    public void Initialize()
     {
         if (cam == null)
         {
             cam = Camera.main;
         }
 
-        this.playerID = playerId;
+        keyboard = Keyboard.current;
+        mouse = Mouse.current;
+
+        if (Gamepad.all.Count > 0)
+        {
+            gamepad = Gamepad.all[0];
+        }
     }
 
     private void Update()
@@ -36,24 +42,32 @@ public class PlayerInput : MonoBehaviour
 
         movement = Vector2.zero;
 
-        if (Keyboard.current.wKey.isPressed == true || Keyboard.current.upArrowKey.isPressed == true)
+        if (keyboard.wKey.isPressed == true || keyboard.upArrowKey.isPressed == true)
         {
             movement.y += 1;
         }
 
-        if (Keyboard.current.sKey.isPressed == true || Keyboard.current.downArrowKey.isPressed == true)
+        if (keyboard.sKey.isPressed == true || keyboard.downArrowKey.isPressed == true)
         {
             movement.y += -1;
         }
 
-        if (Keyboard.current.aKey.isPressed == true || Keyboard.current.leftArrowKey.isPressed == true)
+        if (keyboard.aKey.isPressed == true || keyboard.leftArrowKey.isPressed == true)
         {
             movement.x += -1;
         }
 
-        if (Keyboard.current.dKey.isPressed == true || Keyboard.current.rightArrowKey.isPressed == true)
+        if (keyboard.dKey.isPressed == true || keyboard.rightArrowKey.isPressed == true)
         {
             movement.x += 1;
+        }
+
+        else
+        {
+            if (gamepad != null)
+            {
+                movement = gamepad.leftStick.ReadValue();
+            }
         }
 
         #endregion
@@ -96,6 +110,29 @@ public class PlayerInput : MonoBehaviour
             currentSlotPressedThisFrame = 3;
         }
 
+        if (gamepad != null)
+        {
+            if (gamepad.dpad.up.wasPressedThisFrame)
+            {
+                currentSlotPressedThisFrame = 0;
+            }
+
+            if (gamepad.dpad.right.wasPressedThisFrame)
+            {
+                currentSlotPressedThisFrame = 1;
+            }
+
+            if (gamepad.dpad.down.wasPressedThisFrame)
+            {
+                currentSlotPressedThisFrame = 2;
+            }
+
+            if (gamepad.dpad.left.wasPressedThisFrame)
+            {
+                currentSlotPressedThisFrame = 3;
+            }
+        }
+
         if (currentSlotPressedThisFrame != -1 && currentSlotPressedThisFrame != currentSlotPressed)
         {
             currentSlotPressed = currentSlotPressedThisFrame;
@@ -106,18 +143,34 @@ public class PlayerInput : MonoBehaviour
 
         #region Interacting
 
-        if (Keyboard.current.eKey.isPressed == true)
+        if (keyboard.eKey.isPressed == true)
         {
             interacting = true;
+        }
+
+        if (gamepad != null)
+        {
+            if (gamepad.buttonSouth.isPressed == true)
+            {
+                interacting = true;
+            }
         }
 
         #endregion
 
         #region Shooting
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame == true)
+        if (keyboard.spaceKey.wasPressedThisFrame == true)
         {
             shooting = true;
+        }
+
+        if (gamepad != null)
+        {
+            if (gamepad.rightTrigger.wasPressedThisFrame == true)
+            {
+                shooting = true;
+            }
         }
 
         #endregion

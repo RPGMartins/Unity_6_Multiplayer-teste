@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -86,7 +85,7 @@ public class SceneControllerManager : NetworkBehaviour
 
         List<FixedString64Bytes> playerIdList = new List<FixedString64Bytes>();
 
-        foreach (ulong clientID in clientsCompleted)
+        foreach (ulong clientID in clientsCompleted) //TODO tem que considerar os que estao na sala via splitscreen
         {
             FixedString64Bytes playerAuthenticateID = GetPlayerAuthenticateIDByClientID(clientID);
 
