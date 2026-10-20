@@ -198,7 +198,7 @@ public class GameSession : NetworkBehaviour
         bool isHost = onlineSession.Host == playerID.Value;
         string playerName = "Guest";
 
-        if (playerID == authenticationManager.AuthenticationID)
+        if (playerID == authenticationManager.AuthenticationID && string.IsNullOrEmpty(authenticationManager.PlayerName) == false)
         {
             playerName = authenticationManager.PlayerName;
         }
